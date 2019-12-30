@@ -13,23 +13,23 @@ import java.util.logging.Level;
 import org.bukkit.Bukkit;
 
 import me.oddlyoko.terminator.database.DatabaseModel;
-import me.oddlyoko.terminator.database.model.MuteModel;
+import me.oddlyoko.terminator.database.model.KickModel;
 
-public class MuteManager {
-	public static final String TABLE = "Terminator_mute";
+public class KickManager {
+	public static final String TABLE = "Terminator_kick";
 
 	/**
-	 * Get mute from id
+	 * Get kick from id
 	 * 
 	 * @param sanctionId
-	 *                       The id of the mute
+	 *                       The id of the kick
 	 * @param model
 	 *                       The connection
-	 * @return The mute associated with the id or null if not found
+	 * @return The kick associated with the id or null if not found
 	 * @throws SQLException
 	 *                          If error
 	 */
-	public MuteModel getMute(long sanctionId, DatabaseModel model) throws SQLException {
+	public KickModel getKick(long sanctionId, DatabaseModel model) throws SQLException {
 		Connection c = null;
 		PreparedStatement s = null;
 		ResultSet rs = null;
@@ -37,8 +37,7 @@ public class MuteManager {
 			c = model.getConnection();
 
 			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date, expiration, "
-					+ "is_deleted, delete_reason, HEX(delete_player) AS delete_player FROM " + TABLE
+					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date FROM " + TABLE
 					+ " WHERE sanction_id=?";
 			s = c.prepareStatement(sql);
 			s.setLong(1, sanctionId);
@@ -50,16 +49,11 @@ public class MuteManager {
 				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
-				Timestamp expiration = rs.getTimestamp("expiration_date");
-				boolean isDeleted = rs.getBoolean("is_deleted");
-				String deleteReason = rs.getString("delete_reason");
-				UUID deletePlayer = UUID.nameUUIDFromBytes(rs.getBytes("delete_player"));
-				return new MuteModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate, expiration,
-						isDeleted, deleteReason, deletePlayer);
+				return new KickModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate);
 			} else
 				return null;
 		} catch (SQLException ex) {
-			Bukkit.getLogger().log(Level.SEVERE, "getMute: SQLException while retrieving mute " + sanctionId, ex);
+			Bukkit.getLogger().log(Level.SEVERE, "getKick: SQLException while retrieving kick " + sanctionId, ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);
@@ -67,18 +61,18 @@ public class MuteManager {
 	}
 
 	/**
-	 * Get all mutes for specific player
+	 * Get all kicks for specific player
 	 * 
 	 * @param uuid
 	 *                  The UUID of the player
 	 * @param model
 	 *                  The connection
-	 * @return All mutes associated with specific player or an empty list if not
+	 * @return All kicks associated with specific player or an empty list if not
 	 *         found
 	 * @throws SQLException
 	 *                          If error
 	 */
-	public List<MuteModel> getPlayerMutes(UUID uuid, DatabaseModel model) throws SQLException {
+	public List<KickModel> getPlayerKicks(UUID uuid, DatabaseModel model) throws SQLException {
 		Connection c = null;
 		PreparedStatement s = null;
 		ResultSet rs = null;
@@ -86,14 +80,13 @@ public class MuteManager {
 			c = model.getConnection();
 
 			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date, expiration, "
-					+ "is_deleted, delete_reason, HEX(delete_player) AS delete_player FROM " + TABLE
+					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date FROM " + TABLE
 					+ " WHERE punished_uuid=UNHEX(?)";
 			s = c.prepareStatement(sql);
 			s.setString(1, uuid.toString().replace("-", ""));
 
 			rs = s.executeQuery();
-			List<MuteModel> mutes = new ArrayList<>();
+			List<KickModel> kicks = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
 				int sanctionId = rs.getInt("sanction_id");
@@ -101,17 +94,12 @@ public class MuteManager {
 				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
-				Timestamp expiration = rs.getTimestamp("expiration_date");
-				boolean isDeleted = rs.getBoolean("is_deleted");
-				String deleteReason = rs.getString("delete_reason");
-				UUID deletePlayer = UUID.nameUUIDFromBytes(rs.getBytes("delete_player"));
-				mutes.add(new MuteModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate, expiration,
-						isDeleted, deleteReason, deletePlayer));
+				kicks.add(new KickModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate));
 			}
-			return mutes;
+			return kicks;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"getPlayerMutes: SQLException while retrieving mutes for player " + uuid, ex);
+					"getPlayerKicks: SQLException while retrieving kicks for player " + uuid, ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);
@@ -119,18 +107,18 @@ public class MuteManager {
 	}
 
 	/**
-	 * Returns all mutes that the player has given
+	 * Returns all kicks that the player has given
 	 * 
 	 * @param uuid
 	 *                  The UUID of the player
 	 * @param model
 	 *                  The connection
-	 * @return All mutes associated with specific player or an empty list if not
+	 * @return All kicks associated with specific player or an empty list if not
 	 *         found
 	 * @throws SQLException
 	 *                          If error
 	 */
-	public List<MuteModel> getPlayerGivenMutes(UUID uuid, DatabaseModel model) throws SQLException {
+	public List<KickModel> getPlayerGivenKicks(UUID uuid, DatabaseModel model) throws SQLException {
 		Connection c = null;
 		PreparedStatement s = null;
 		ResultSet rs = null;
@@ -138,14 +126,13 @@ public class MuteManager {
 			c = model.getConnection();
 
 			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date, expiration, "
-					+ "is_deleted, delete_reason, HEX(delete_player) AS delete_player FROM " + TABLE
+					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date FROM " + TABLE
 					+ " WHERE punisher_uuid=UNHEX(?)";
 			s = c.prepareStatement(sql);
 			s.setString(1, uuid.toString().replace("-", ""));
 
 			rs = s.executeQuery();
-			List<MuteModel> mutes = new ArrayList<>();
+			List<KickModel> kicks = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
 				int sanctionId = rs.getInt("sanction_id");
@@ -153,17 +140,12 @@ public class MuteManager {
 				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
-				Timestamp expiration = rs.getTimestamp("expiration_date");
-				boolean isDeleted = rs.getBoolean("is_deleted");
-				String deleteReason = rs.getString("delete_reason");
-				UUID deletePlayer = UUID.nameUUIDFromBytes(rs.getBytes("delete_player"));
-				mutes.add(new MuteModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate, expiration,
-						isDeleted, deleteReason, deletePlayer));
+				kicks.add(new KickModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate));
 			}
-			return mutes;
+			return kicks;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"getPlayerGivenMutes: SQLException while retrieving mutes for player " + uuid, ex);
+					"getPlayerGivenKicks: SQLException while retrieving kicks for player " + uuid, ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);
@@ -171,17 +153,17 @@ public class MuteManager {
 	}
 
 	/**
-	 * Returns the number of mutes specific player has
+	 * Returns the number of kicks specific player has
 	 * 
 	 * @param uuid
 	 *                  The UUID of the player
 	 * @param model
 	 *                  The connection
-	 * @return The number of mutes specific player has.
+	 * @return The number of kicks specific player has.
 	 * @throws SQLException
 	 *                          If error
 	 */
-	public long getMutesCount(UUID uuid, DatabaseModel model) throws SQLException {
+	public long getKicksCount(UUID uuid, DatabaseModel model) throws SQLException {
 		Connection c = null;
 		PreparedStatement s = null;
 		ResultSet rs = null;
@@ -198,7 +180,7 @@ public class MuteManager {
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"getMutesCount: SQLException while retrieving number of mutes for player " + uuid, ex);
+					"getKicksCount: SQLException while retrieving number of kicks for player " + uuid, ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);
@@ -206,17 +188,17 @@ public class MuteManager {
 	}
 
 	/**
-	 * Returns the number of mutes specific player has given
+	 * Returns the number of kicks specific player has given
 	 * 
 	 * @param uuid
 	 *                  The UUID of the player
 	 * @param model
 	 *                  The connection
-	 * @return The number of mutes specific player has.
+	 * @return The number of kicks specific player has.
 	 * @throws SQLException
 	 *                          If error
 	 */
-	public long getMutesGivenCount(UUID uuid, DatabaseModel model) throws SQLException {
+	public long getKicksGivenCount(UUID uuid, DatabaseModel model) throws SQLException {
 		Connection c = null;
 		PreparedStatement s = null;
 		ResultSet rs = null;
@@ -233,7 +215,7 @@ public class MuteManager {
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"getMutesGivenCount: SQLException while retrieving number of mutes for player " + uuid, ex);
+					"getKicksGivenCount: SQLException while retrieving number of kicks for player " + uuid, ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);
@@ -241,30 +223,29 @@ public class MuteManager {
 	}
 
 	/**
-	 * Add a new mute
+	 * Add a new kick
 	 * 
-	 * @param muteModel
-	 *                      The mute model
+	 * @param kickModel
+	 *                      The kick model
 	 * @param model
 	 *                      The connection
-	 * @return The id of the mute
+	 * @return The id of the kick
 	 * @throws SQLException
 	 *                          If error
 	 */
-	public long addMute(MuteModel muteModel, DatabaseModel model) throws SQLException {
+	public long addKick(KickModel kickModel, DatabaseModel model) throws SQLException {
 		Connection c = null;
 		PreparedStatement s = null;
 		ResultSet rs = null;
 		try {
 			c = model.getConnection();
 
-			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason, expiration)"
+			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason)"
 					+ " VALUES (UNHEX(?), UNHEX(?), ?, ?)";
 			s = c.prepareStatement(sql);
-			s.setString(1, muteModel.getPunishedUuid().toString().replace("-", ""));
-			s.setString(2, muteModel.getPunisherUuid().toString().replace("-", ""));
-			s.setString(3, muteModel.getReason());
-			s.setTimestamp(4, muteModel.getExpiration());
+			s.setString(1, kickModel.getPunishedUuid().toString().replace("-", ""));
+			s.setString(2, kickModel.getPunisherUuid().toString().replace("-", ""));
+			s.setString(3, kickModel.getReason());
 
 			s.executeUpdate();
 			rs = s.getGeneratedKeys();
@@ -273,42 +254,7 @@ public class MuteManager {
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"addMute: SQLException while adding mute for player " + muteModel.getPunishedUuid(), ex);
-			throw ex;
-		} finally {
-			close(c, s, rs);
-		}
-	}
-
-	/**
-	 * Stop an existing mute
-	 * 
-	 * @param muteModel
-	 *                      The mute model
-	 * @param model
-	 *                      The connection
-	 * @return The id of the mute
-	 * @throws SQLException
-	 *                          If error
-	 */
-	public int stopMute(MuteModel muteModel, DatabaseModel model) throws SQLException {
-		Connection c = null;
-		PreparedStatement s = null;
-		ResultSet rs = null;
-		try {
-			c = model.getConnection();
-
-			String sql = "UPDATE " + TABLE + " SET is_deleted=TRUE, deleteReason=?, deletePlayer=?"
-					+ " WHERE sanctionId=?";
-			s = c.prepareStatement(sql);
-			s.setString(1, muteModel.getDeleteReason());
-			s.setString(2, muteModel.getDeletePlayer().toString().replace("-", ""));
-			s.setLong(3, muteModel.getSanctionId());
-
-			return s.executeUpdate();
-		} catch (SQLException ex) {
-			Bukkit.getLogger().log(Level.SEVERE,
-					"stopMute: SQLException while stopping mute " + muteModel.getSanctionId(), ex);
+					"addKick: SQLException while adding kick for player " + kickModel.getPunishedUuid(), ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);
