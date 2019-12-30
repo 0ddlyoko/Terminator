@@ -261,8 +261,8 @@ public class MuteManager {
 			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason, expiration)"
 					+ " VALUES (UNHEX(?), UNHEX(?), ?, ?)";
 			s = c.prepareStatement(sql);
-			s.setString(1, muteModel.getPunished_uuid().toString().replace("-", ""));
-			s.setString(2, muteModel.getPunisher_uuid().toString().replace("-", ""));
+			s.setString(1, muteModel.getPunishedUuid().toString().replace("-", ""));
+			s.setString(2, muteModel.getPunisherUuid().toString().replace("-", ""));
 			s.setString(3, muteModel.getReason());
 			s.setTimestamp(4, muteModel.getExpiration());
 
@@ -273,7 +273,42 @@ public class MuteManager {
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"addMute: SQLException while adding mute for player " + muteModel.getPunished_uuid(), ex);
+					"addMute: SQLException while adding mute for player " + muteModel.getPunishedUuid(), ex);
+			throw ex;
+		} finally {
+			close(c, s, rs);
+		}
+	}
+
+	/**
+	 * Stop an existing mute
+	 * 
+	 * @param muteModel
+	 *                      The mute model
+	 * @param model
+	 *                      The connection
+	 * @return The id of the mute
+	 * @throws SQLException
+	 *                          If error
+	 */
+	public int stopMute(MuteModel muteModel, DatabaseModel model) throws SQLException {
+		Connection c = null;
+		PreparedStatement s = null;
+		ResultSet rs = null;
+		try {
+			c = model.getConnection();
+
+			String sql = "UPDATE " + TABLE + " SET is_deleted=TRUE, deleteReason=?, deletePlayer=?"
+					+ " WHERE sanctionId=?";
+			s = c.prepareStatement(sql);
+			s.setString(1, muteModel.getDeleteReason());
+			s.setString(2, muteModel.getDeletePlayer().toString().replace("-", ""));
+			s.setLong(3, muteModel.getSanctionId());
+
+			return s.executeUpdate();
+		} catch (SQLException ex) {
+			Bukkit.getLogger().log(Level.SEVERE,
+					"stopMute: SQLException while stopping mute " + muteModel.getSanctionId(), ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);

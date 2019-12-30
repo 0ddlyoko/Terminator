@@ -32,13 +32,13 @@ public class MuteModel {
 	+---------------+--------------+------+-----+---------+----------------+
 	 */
 	
-	private long sanction_id;
-	private UUID punished_uuid;
-	private UUID punisher_uuid;
+	private long sanctionId;
+	private UUID punishedUuid;
+	private UUID punisherUuid;
 	private String reason;
-	private Timestamp creation_date;
+	private Timestamp creationDate;
 	private Timestamp expiration;
-	private boolean is_deleted;
-	private String delete_reason;
-	private UUID delete_player;
+	private boolean isDeleted;
+	private String deleteReason;
+	private UUID deletePlayer;
 }

@@ -261,8 +261,8 @@ public class BanManager {
 			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason, expiration)"
 					+ " VALUES (UNHEX(?), UNHEX(?), ?, ?)";
 			s = c.prepareStatement(sql);
-			s.setString(1, banModel.getPunished_uuid().toString().replace("-", ""));
-			s.setString(2, banModel.getPunisher_uuid().toString().replace("-", ""));
+			s.setString(1, banModel.getPunishedUuid().toString().replace("-", ""));
+			s.setString(2, banModel.getPunisherUuid().toString().replace("-", ""));
 			s.setString(3, banModel.getReason());
 			s.setTimestamp(4, banModel.getExpiration());
 
@@ -273,7 +273,42 @@ public class BanManager {
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
-					"addBan: SQLException while adding ban for player " + banModel.getPunished_uuid(), ex);
+					"addBan: SQLException while adding ban for player " + banModel.getPunishedUuid(), ex);
+			throw ex;
+		} finally {
+			close(c, s, rs);
+		}
+	}
+
+	/**
+	 * Stop an existing ban
+	 * 
+	 * @param banModel
+	 *                     The ban model
+	 * @param model
+	 *                     The connection
+	 * @return The id of the ban
+	 * @throws SQLException
+	 *                          If error
+	 */
+	public int stopBan(BanModel banModel, DatabaseModel model) throws SQLException {
+		Connection c = null;
+		PreparedStatement s = null;
+		ResultSet rs = null;
+		try {
+			c = model.getConnection();
+
+			String sql = "UPDATE " + TABLE + " SET is_deleted=TRUE, deleteReason=?, deletePlayer=?"
+					+ " WHERE sanctionId=?";
+			s = c.prepareStatement(sql);
+			s.setString(1, banModel.getDeleteReason());
+			s.setString(2, banModel.getDeletePlayer().toString().replace("-", ""));
+			s.setLong(3, banModel.getSanctionId());
+
+			return s.executeUpdate();
+		} catch (SQLException ex) {
+			Bukkit.getLogger().log(Level.SEVERE, "stopBan: SQLException while stopping ban " + banModel.getSanctionId(),
+					ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);

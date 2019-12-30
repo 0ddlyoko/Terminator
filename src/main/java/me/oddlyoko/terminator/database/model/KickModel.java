@@ -28,9 +28,9 @@ public class KickModel {
 	+---------------+--------------+------+-----+---------+----------------+
 	 */
 	
-	private long sanction_id;
-	private UUID punished_uuid;
-	private UUID punisher_uuid;
+	private long sanctionId;
+	private UUID punishedUuid;
+	private UUID punisherUuid;
 	private String reason;
-	private Timestamp creation_date;
+	private Timestamp creationDate;
 }
