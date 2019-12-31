@@ -1,8 +1,0 @@
-name: Terminator
-main: me.oddlyoko.terminator.Terminator
-version: 1.0.0
-api-version: 1.13
-authors: [0ddlyoko, Grandoz]
-commands:
-  ban:
-    description: Bannir un joueur
