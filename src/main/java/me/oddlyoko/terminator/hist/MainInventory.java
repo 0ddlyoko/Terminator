@@ -44,8 +44,20 @@ public class MainInventory implements InventoryProvider {
 				i.put(PAGE, 1);
 			});
 		}));
-		inv.set(13, ClickableItem.of(MuteHead));
-		inv.set(15, ClickableItem.of(KickHead));
+		inv.set(13, ClickableItem.of(MuteHead , e->{
+			Player p =(Player) e.getWhoClicked();
+			Terminator.get().getInventorymanager().openInventory(new MuteHistInventorry(), p, i->{
+				i.put(PAGE, 1);
+			});
+		}
+		));
+		inv.set(15, ClickableItem.of(KickHead,e->{
+			Player p =(Player) e.getWhoClicked();
+			Terminator.get().getInventorymanager().openInventory(new KickHistInventory(), p, i->{
+				i.put(PAGE, 1);
+			});
+		}
+));
 		inv.set(0, ClickableItem.of(ItemBuilder.of(Material.PAPER).name(__.PREFIX + "§7V1.0").build()));
 		List<Ban> list = Terminator.get().getBanManager().getSortedBanHistory();
 		for(int i =0; i<list.size() ; i++) {

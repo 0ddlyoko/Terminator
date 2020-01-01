@@ -53,6 +53,7 @@ public class BanManager implements Listener {
 	public void addKick(UUID kickedUuid, UUID kickerUuid, String reason) {
 		checkBan(kickedUuid);
 		Kick kick = new Kick(kickedUuid, kickerUuid, reason);
+		kick.setCreationDate(new Date());
 		CommandSender sender;
 		if (kickerUuid != null)
 			sender = Bukkit.getPlayer(kickerUuid);
@@ -169,6 +170,45 @@ public class BanManager implements Listener {
         }
         Collections.reverse(SortBan);
         return SortBan;
+        
+	}
+	public List<Kick> getSortedKickHistory(){
+		//Get all bans and sort them in a List
+		//Get all bans
+		List<Kick> allkicks = new ArrayList<>();
+
+		for(Entry<UUID, List<Kick>> 	entry : kicks.entrySet()) {
+			for(int i =0; i<entry.getValue().size() ; i++) {
+				allkicks.add(entry.getValue().get(i));
+			}
+		}
+		//Sort all bans
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		DateComparator dc = new DateComparator("dd-MM-yyyy HH:mm:ss");
+		HashMap<String, Kick> mixedMap = new HashMap<>();
+		List<String> allDates = new ArrayList<>();
+		for(int i = 0 ; i<allkicks.size() ; i++) {
+			Kick kick = allkicks.get(i);
+			if(kick!=null) {
+				allDates.add(format.format(kick.getCreationDate()));
+				mixedMap.put(format.format(kick.getCreationDate()), kick);
+			}
+		}
+        Collections.sort(allDates , dc);
+        //Preparing HashMap Ban&date
+        List<Kick> SortKick = new ArrayList<>();
+        for(int i = 0; i<allDates.size() ; i++) {
+        String date = allDates.get(i);
+        if(date!=null) {
+        	Kick kick = mixedMap.get(allDates.get(i));
+        	if(kick!=null) {
+        		SortKick.add(kick);
+        		
+        		}
+        	}
+        }
+        Collections.reverse(SortKick);
+        return SortKick;
         
 	}
 	@EventHandler
