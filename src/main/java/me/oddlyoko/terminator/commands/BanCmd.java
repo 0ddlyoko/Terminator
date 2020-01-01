@@ -54,10 +54,10 @@ public class BanCmd extends Cmds implements CommandExecutor {
 				return true;
 			}
 			if (Terminator.get().getBanManager().isBanned(playerUuid)) {
-				// Already banned
-				sender.sendMessage(error("Player " + pseudo + " is already banned"));
-				return true;
-			}
+			//Already banned
+			sender.sendMessage(error("Player " + pseudo + " is already banned"));
+			return true;
+		}
 			UUID player2Uuid = (sender instanceof Player) ? ((Player) sender).getUniqueId() : null;
 			Calendar now = Calendar.getInstance();
 			now.add(Calendar.SECOND, time);

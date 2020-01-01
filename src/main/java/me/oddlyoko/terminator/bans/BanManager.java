@@ -1,10 +1,16 @@
 package me.oddlyoko.terminator.bans;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -16,6 +22,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import javafx.print.Collation;
+import me.oddlyoko.terminator.DateComparator;
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
 import me.oddlyoko.terminator.__;
@@ -66,6 +74,7 @@ public class BanManager implements Listener {
 	public void addBan(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
 		checkBan(punishedUuid);
 		Ban ban = new Ban(punishedUuid, punisherUuid, reason, expiration);
+	ban.setCreationDate(new Date());
 		CommandSender sender;
 		if (punisherUuid != null)
 			sender = Bukkit.getPlayer(punisherUuid);
@@ -123,6 +132,45 @@ public class BanManager implements Listener {
 		}
 	}
 
+	public List<Ban> getSortedBanHistory(){
+		//Get all bans and sort them in a List
+		//Get all bans
+		List<Ban> allbans = new ArrayList<>();
+
+		for(Entry<UUID, List<Ban>> 	entry : bans.entrySet()) {
+			for(int i =0; i<entry.getValue().size() ; i++) {
+				allbans.add(entry.getValue().get(i));
+			}
+		}
+		//Sort all bans
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		DateComparator dc = new DateComparator("dd-MM-yyyy HH:mm:ss");
+		HashMap<String, Ban> mixedMap = new HashMap<>();
+		List<String> allDates = new ArrayList<>();
+		for(int i = 0 ; i<allbans.size() ; i++) {
+			Ban ban = allbans.get(i);
+			if(ban!=null) {
+				allDates.add(format.format(ban.getCreationDate()));
+				mixedMap.put(format.format(ban.getCreationDate()), ban);
+			}
+		}
+        Collections.sort(allDates , dc);
+        //Preparing HashMap Ban&date
+        List<Ban> SortBan = new ArrayList<>();
+        for(int i = 0; i<allDates.size() ; i++) {
+        String date = allDates.get(i);
+        if(date!=null) {
+        	Ban ban = mixedMap.get(allDates.get(i));
+        	if(ban!=null) {
+        		SortBan.add(ban);
+        		
+        		}
+        	}
+        }
+        Collections.reverse(SortBan);
+        return SortBan;
+        
+	}
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
@@ -142,7 +190,6 @@ public class BanManager implements Listener {
 		Player p = e.getPlayer();
 		UUID uuid = p.getUniqueId();
 		// Unload
-		bans.remove(uuid);
 	}
 
 	public String getBanMessage(Ban currentBan) {

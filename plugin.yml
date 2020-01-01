@@ -4,6 +4,8 @@ version: 1.0.0
 api-version: 1.13
 authors: [0ddlyoko, Grandoz]
 commands:
+  hist:
+    description: Get hist of mutes bans and kicks
   ban:
     description: Ban a player
   unban:
@@ -15,6 +17,9 @@ commands:
   kick:
     description: Kick a player
 permissions:
+  terminator.hist:
+    default: op
+    description: can see server hist
   terminator.mute:
     default: op
     description: Mute a player

@@ -7,11 +7,13 @@ import org.bukkit.scheduler.BukkitTask;
 
 import me.oddlyoko.terminator.bans.BanManager;
 import me.oddlyoko.terminator.commands.BanCmd;
+import me.oddlyoko.terminator.commands.HistCmd;
 import me.oddlyoko.terminator.commands.KickCmd;
 import me.oddlyoko.terminator.commands.MuteCmd;
 import me.oddlyoko.terminator.commands.UnMuteCmd;
 import me.oddlyoko.terminator.commands.UnbanCmd;
 import me.oddlyoko.terminator.config.ConfigManager;
+import me.oddlyoko.terminator.inventories.InventoryManager;
 import me.oddlyoko.terminator.mutes.MuteManager;
 
 public class Terminator extends JavaPlugin {
@@ -20,6 +22,7 @@ public class Terminator extends JavaPlugin {
 	private ConfigManager configManager;
 	private BanManager banManager;
 	private MuteManager muteManager;
+	private InventoryManager inventorymanager;
 	private BukkitTask uuidTask;
 
 	public Terminator() {
@@ -32,6 +35,8 @@ public class Terminator extends JavaPlugin {
 	public void onEnable() {
 		saveDefaultConfig();
 		configManager = new ConfigManager();
+		inventorymanager = new InventoryManager();
+		inventorymanager.init();
 		UUIDs.load();
 		for (Player p : Bukkit.getOnlinePlayers())
 			UUIDs.register(p.getUniqueId(), p.getName());
@@ -46,6 +51,7 @@ public class Terminator extends JavaPlugin {
 		getCommand("mute").setExecutor(new MuteCmd());
 		getCommand("unmute").setExecutor(new UnMuteCmd());
 		getCommand("unban").setExecutor(new UnbanCmd());
+		getCommand("hist").setExecutor(new HistCmd());
 	}
 
 	@Override
@@ -69,6 +75,14 @@ public class Terminator extends JavaPlugin {
 
 	public MuteManager getMuteManager() {
 		return muteManager;
+	}
+
+	public InventoryManager getInventorymanager() {
+		return inventorymanager;
+	}
+
+	public void setInventorymanager(InventoryManager inventorymanager) {
+		this.inventorymanager = inventorymanager;
 	}
 
 	

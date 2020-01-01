@@ -11,6 +11,10 @@ public class Ban {
 	private UUID punisherUuid;
 	private String reason;
 	private Date creationDate;
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
 	private Date expiration;
 	private boolean isDeleted;
 	private String deleteReason;
@@ -18,7 +22,7 @@ public class Ban {
 
 	public Ban(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
 		this.punishedUuid = punishedUuid;
-		this.punishedUuid = punisherUuid;
+		this.punisherUuid = punisherUuid;
 		this.reason = reason;
 		this.expiration = expiration;
 	}
