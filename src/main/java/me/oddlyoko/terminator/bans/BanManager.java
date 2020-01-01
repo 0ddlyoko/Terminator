@@ -19,12 +19,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
 import me.oddlyoko.terminator.__;
+import me.oddlyoko.terminator.kicks.Kick;
 
 public class BanManager implements Listener {
 	// An HashMap containing as key the UUID of the player and as value a list
 	// containing all bans
 	// This HashMap contains ban history for online players
 	private HashMap<UUID, List<Ban>> bans;
+	private HashMap<UUID, List<Kick>> kicks;
 	// An HashMap containing as key the UUID of the player and as value the current
 	// ban
 	// This HashMap contains players that are currently banned
@@ -33,10 +35,32 @@ public class BanManager implements Listener {
 	public BanManager() {
 		bans = new HashMap<>();
 		currentBans = new HashMap<>();
+		kicks = new HashMap<>();
 		// TODO load players that are currently banned
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			// TODO load bans
 		}
+	}
+
+	public void addKick(UUID kickedUuid, UUID kickerUuid, String reason) {
+		checkBan(kickedUuid);
+		Kick kick = new Kick(kickedUuid, kickerUuid, reason);
+		CommandSender sender;
+		if (kickerUuid != null)
+			sender = Bukkit.getPlayer(kickerUuid);
+		else
+			sender = Bukkit.getConsoleSender();
+		// Check if player is already banned
+		List<Kick> kicks = this.kicks.get(kickedUuid);
+		if (kicks == null)
+			kicks = new ArrayList<>();
+		kicks.add(kick);
+		this.kicks.put(kickedUuid, kicks);
+		Player p = Bukkit.getPlayer(kickedUuid);
+		p.kickPlayer("§aYou have been kicked by§b " + sender.getName() + " §afor §b" + reason);
+		Bukkit.broadcast("§b" + p.getName() + " §ahas been kicked by §b" + sender.getName() + " §afor §b" + reason,
+				"terminator.kick.see");
+		// TODO Save in database
 	}
 
 	public void addBan(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
@@ -57,12 +81,13 @@ public class BanManager implements Listener {
 		Player p = Bukkit.getPlayer(punishedUuid);
 		// TODO
 		// if (p != null)
-		// p.kickPlayer("Your banned: " + reason);
+		// p.kickPlayer("Your banned: " + getBanMessage(ban)); \!/\!/
 		String msg = __.PREFIX + ChatColor.AQUA + UUIDs.get(punishedUuid) + ChatColor.GREEN + " has been banned by "
 				+ ChatColor.AQUA + (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid)) + ChatColor.GREEN
 				+ " until " + ChatColor.AQUA
 				+ (expiration == null ? "never" : new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(expiration));
 		Bukkit.broadcast(msg, "terminator.ban.see");
+
 		// TODO Save in database
 	}
 
@@ -107,14 +132,7 @@ public class BanManager implements Listener {
 		if (currentBan != null) {
 			// He's banned, kick him
 			// TODO Custom message
-			List<String> banMessages = Terminator.get().getConfigManager().getBanMessage();
-			String expiration = (currentBan.getExpiration() == null ? "never"
-					: new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(currentBan.getExpiration()));
-			StringBuilder sb = new StringBuilder();
-			for (String str : banMessages)
-				sb.append(str.replace("{PREFIX}", __.PREFIX).replace("{REASON}", currentBan.getReason())
-						.replace("{EXPIRATION}", expiration)).append('\n');
-			p.kickPlayer(sb.toString());
+			p.kickPlayer(getBanMessage(currentBan));
 			return;
 		}
 	}
@@ -125,5 +143,16 @@ public class BanManager implements Listener {
 		UUID uuid = p.getUniqueId();
 		// Unload
 		bans.remove(uuid);
+	}
+
+	public String getBanMessage(Ban currentBan) {
+		StringBuilder sb = new StringBuilder();
+		List<String> banMessages = Terminator.get().getConfigManager().getBanMessage();
+		String expiration = (currentBan.getExpiration() == null ? "never"
+				: new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(currentBan.getExpiration()));
+		for (String str : banMessages)
+			sb.append(str.replace("{PREFIX}", __.PREFIX).replace("{REASON}", currentBan.getReason())
+					.replace("{EXPIRATION}", expiration)).append('\n');
+		return sb.toString();
 	}
 }

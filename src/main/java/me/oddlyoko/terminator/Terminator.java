@@ -7,14 +7,19 @@ import org.bukkit.scheduler.BukkitTask;
 
 import me.oddlyoko.terminator.bans.BanManager;
 import me.oddlyoko.terminator.commands.BanCmd;
+import me.oddlyoko.terminator.commands.KickCmd;
+import me.oddlyoko.terminator.commands.MuteCmd;
+import me.oddlyoko.terminator.commands.UnMuteCmd;
 import me.oddlyoko.terminator.commands.UnbanCmd;
 import me.oddlyoko.terminator.config.ConfigManager;
+import me.oddlyoko.terminator.mutes.MuteManager;
 
 public class Terminator extends JavaPlugin {
 	public static Terminator TERMINATOR;
 
 	private ConfigManager configManager;
 	private BanManager banManager;
+	private MuteManager muteManager;
 	private BukkitTask uuidTask;
 
 	public Terminator() {
@@ -35,8 +40,11 @@ public class Terminator extends JavaPlugin {
 			UUIDs.save();
 		}, 1, 3600);
 		getServer().getPluginManager().registerEvents(banManager = new BanManager(), this);
-		getServer().getPluginManager().registerEvents(new Listener(), this);
+		getServer().getPluginManager().registerEvents(muteManager = new MuteManager(), this);
 		getCommand("ban").setExecutor(new BanCmd());
+		getCommand("kick").setExecutor(new KickCmd());
+		getCommand("mute").setExecutor(new MuteCmd());
+		getCommand("unmute").setExecutor(new UnMuteCmd());
 		getCommand("unban").setExecutor(new UnbanCmd());
 	}
 
@@ -58,4 +66,10 @@ public class Terminator extends JavaPlugin {
 	public static Terminator get() {
 		return TERMINATOR;
 	}
+
+	public MuteManager getMuteManager() {
+		return muteManager;
+	}
+
+	
 }

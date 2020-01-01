@@ -12,18 +12,18 @@ import org.bukkit.entity.Player;
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
 
-public class BanCmd extends Cmds implements CommandExecutor {
+public class MuteCmd extends Cmds implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if ("ban".equalsIgnoreCase(command.getName())) {
-			// /ban <pseudo> <time> <reason>
-			if (!sender.hasPermission("terminator.ban")) {
+		if ("mute".equalsIgnoreCase(command.getName())) {
+			// mute <pseudo> <time> <reason>
+			if (!sender.hasPermission("terminator.mute")) {
 				sender.sendMessage(error("You don't have permission to use this command"));
 				return true;
 			}
 			if (args.length < 3) {
-				sender.sendMessage(syntax("/ban <pseudo> <time> <reason>"));
+				sender.sendMessage(syntax("/mute <pseudo> <time> <reason>"));
 				return true;
 			}
 			String pseudo = args[0];
@@ -43,8 +43,8 @@ public class BanCmd extends Cmds implements CommandExecutor {
 				return false;
 			}
 			String reason = "";
-			for(int i = 2 ; i<args.length ; i++) {
-				reason = reason+ args[i]+" ";
+			for (int i = 2; i < args.length; i++) {
+				reason = reason + args[i] + " ";
 			}
 			Player p = Bukkit.getPlayer(pseudo);
 			UUID playerUuid = p != null ? p.getUniqueId() : UUIDs.get(pseudo);
@@ -53,15 +53,11 @@ public class BanCmd extends Cmds implements CommandExecutor {
 				sender.sendMessage(error("Player " + pseudo + " hasn't been found"));
 				return true;
 			}
-			if (Terminator.get().getBanManager().isBanned(playerUuid)) {
-				// Already banned
-				sender.sendMessage(error("Player " + pseudo + " is already banned"));
-				return true;
-			}
 			UUID player2Uuid = (sender instanceof Player) ? ((Player) sender).getUniqueId() : null;
 			Calendar now = Calendar.getInstance();
 			now.add(Calendar.SECOND, time);
-			Terminator.get().getBanManager().addBan(playerUuid, player2Uuid, reason, time == 0 ? null : now.getTime());
+			Terminator.get().getMuteManager().addMute(playerUuid, player2Uuid, reason,
+					time == 0 ? null : now.getTime());
 		}
 		return false;
 	}
