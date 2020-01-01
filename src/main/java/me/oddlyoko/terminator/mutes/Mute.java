@@ -29,6 +29,10 @@ public class Mute {
 		return reason;
 	}
 
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
 	public Date getCreationDate() {
 		return creationDate;
 	}
