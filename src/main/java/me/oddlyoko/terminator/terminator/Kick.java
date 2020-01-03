@@ -1,4 +1,4 @@
-package me.oddlyoko.terminator.kicks;
+package me.oddlyoko.terminator.terminator;
 
 import java.util.Date;
 import java.util.UUID;
@@ -14,6 +14,7 @@ public class Kick {
 		this.kickedUuid = kickedUuid;
 		this.kickerUuid = kickerUuid;
 		this.reason = reason;
+		this.creationDate = new Date();
 	}
 
 	public long getSanctionId() {
@@ -26,10 +27,6 @@ public class Kick {
 
 	public Date getCreationDate() {
 		return creationDate;
-	}
-
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
 	}
 
 	public UUID getKickerUuid() {

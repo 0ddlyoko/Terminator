@@ -27,7 +27,7 @@ public class UUIDs {
 		uuids = new HashMap<>();
 		names = new HashMap<>();
 		// Création du fichier
-		f = new File("usercache.txt");
+		f = new File("plugins" + File.separator + __.NAME + File.separator + "usercache");
 		try {
 			if (!f.exists() && !f.createNewFile())
 				Bukkit.getLogger().severe(f.getName() + " cannot be created !");

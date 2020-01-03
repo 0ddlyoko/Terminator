@@ -4,6 +4,8 @@ version: 1.0.0
 api-version: 1.13
 authors: [0ddlyoko, Grandoz]
 commands:
+  bypass:
+    description: Add / Remove players bypass
   hist:
     description: Get hist of mutes bans and kicks
   ban:
@@ -17,6 +19,9 @@ commands:
   kick:
     description: Kick a player
 permissions:
+  terminator.bypass:
+    default: op
+    description: bypass players to prevent them for being banned, muted or kicked
   terminator.hist:
     default: op
     description: can see server hist

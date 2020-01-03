@@ -25,20 +25,23 @@ public class UnbanCmd extends Cmds implements CommandExecutor {
 				return true;
 			}
 			String pseudo = args[0];
-			String reason = "";
-			for (int i = 1; i < args.length; i++) {
-				reason = reason + args[i] + " ²";
-			}
+
+			StringBuilder reason = new StringBuilder();
+			for (int i = 1; i < args.length; i++)
+				reason.append(args[i]).append(" ");
+			// Remove last space
+			reason.setLength(reason.length() - 1);
+
 			UUID uuid = UUIDs.get(pseudo);
 			if (uuid == null) {
 				sender.sendMessage(error("Player " + pseudo + " hasn't been found"));
 				return true;
 			}
-			if (!Terminator.get().getBanManager().isBanned(uuid)) {
+			if (!Terminator.get().getTerminatorManager().isBanned(uuid)) {
 				sender.sendMessage(error("Player " + pseudo + " isn't banned"));
 				return true;
 			}
-			Terminator.get().getBanManager().removeBan(uuid, reason,
+			Terminator.get().getTerminatorManager().unban(uuid, reason.toString(),
 					(sender instanceof Player) ? ((Player) sender).getUniqueId() : null);
 		}
 		return false;

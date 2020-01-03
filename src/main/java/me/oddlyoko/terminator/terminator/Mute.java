@@ -1,42 +1,29 @@
-package me.oddlyoko.terminator.bans;
+package me.oddlyoko.terminator.terminator;
 
 import java.util.Date;
 import java.util.UUID;
 
-public class Ban {
+public class Mute {
 	private long sanctionId;
-	private UUID punishedUuid;
-	// If punisher is null then the ban didn't come from a player but from the
-	// console
-	private UUID punisherUuid;
+	private UUID muterUuid;
+	private UUID mutedUuid;
 	private String reason;
 	private Date creationDate;
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
-	}
-
 	private Date expiration;
 	private boolean isDeleted;
 	private String deleteReason;
 	private UUID deletePlayer;
 
-	public Ban(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
-		this.punishedUuid = punishedUuid;
-		this.punisherUuid = punisherUuid;
+	public Mute(UUID mutedUuid, UUID muterUuid, String reason, Date expiration) {
+		this.mutedUuid = mutedUuid;
+		this.muterUuid = muterUuid;
 		this.reason = reason;
 		this.expiration = expiration;
+		this.creationDate = new Date();
 	}
 
 	public long getSanctionId() {
 		return sanctionId;
-	}
-
-	public UUID getPunishedUuid() {
-		return punishedUuid;
-	}
-
-	public UUID getPunisherUuid() {
-		return punisherUuid;
 	}
 
 	public String getReason() {
@@ -73,5 +60,13 @@ public class Ban {
 
 	public void setDeletePlayer(UUID deletePlayer) {
 		this.deletePlayer = deletePlayer;
+	}
+
+	public UUID getMuterUuid() {
+		return muterUuid;
+	}
+
+	public UUID getMutedUuid() {
+		return mutedUuid;
 	}
 }
