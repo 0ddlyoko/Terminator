@@ -36,7 +36,7 @@
 
 	<build>
 		<defaultGoal>clean install</defaultGoal>
-		<finalName>Pnj-${project.version}</finalName>
+		<finalName>Terminator-${project.version}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -108,6 +108,21 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.10</version>
+			<scope>provided</scope>
+		</dependency>
+		<!--Bukkit API -->
+		<dependency>
+			<groupId>org.bukkit</groupId>
+			<artifactId>bukkit</artifactId>
+			<version>1.13.2-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!--Spigot API and NMS -->
+		<dependency>
+			<groupId>com.github.azbh111</groupId>
+			<artifactId>craftbukkit-1.13.2</artifactId>
+			<version>R</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
