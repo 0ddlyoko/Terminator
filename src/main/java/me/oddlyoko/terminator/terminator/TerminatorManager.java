@@ -18,7 +18,6 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,6 +27,10 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
 import me.oddlyoko.terminator.__;
+import me.oddlyoko.terminator.inventories.inv.BanHistInventory;
+import me.oddlyoko.terminator.inventories.inv.KickHistInventory;
+import me.oddlyoko.terminator.inventories.inv.MainInventory;
+import me.oddlyoko.terminator.inventories.inv.MuteHistInventory;
 
 public class TerminatorManager implements Listener {
 	private HashMap<UUID, TerminatorPlayer> players;
@@ -38,12 +41,21 @@ public class TerminatorManager implements Listener {
 	private Set<UUID> bypass;
 	private File bypassFile;
 
+	private MainInventory mainInventory;
+	private BanHistInventory banHistInventory;
+	private KickHistInventory kickHistInventory;
+	private MuteHistInventory muteHistInventory;
+
 	public TerminatorManager() {
 		players = new HashMap<>();
 		bans = new ArrayList<>();
 		kicks = new ArrayList<>();
 		mutes = new ArrayList<>();
 		bypass = new HashSet<>();
+		mainInventory = new MainInventory();
+		banHistInventory = new BanHistInventory();
+		kickHistInventory = new KickHistInventory();
+		muteHistInventory = new MuteHistInventory();
 		bypassFile = new File("plugins" + File.separator + __.NAME + File.separator + "bypass");
 		try {
 			if (!bypassFile.exists() && !bypassFile.createNewFile())
@@ -92,21 +104,11 @@ public class TerminatorManager implements Listener {
 		Ban ban = new Ban(punishedUuid, punisherUuid, reason, expiration);
 		TerminatorPlayer player = getPlayer(punishedUuid);
 		String playerName = UUIDs.get(punishedUuid);
-		CommandSender sender;
-		if (punisherUuid != null)
-			sender = Bukkit.getPlayer(punisherUuid);
-		else
-			sender = Bukkit.getConsoleSender();
 		bans.add(ban);
 		player.addBan(ban);
 		Player p = Bukkit.getPlayer(punishedUuid);
-		// TODO
-		// if (p != null)
-		// p.kickPlayer("You have been banned: " + getBanMessage(ban)); \!/\!/
-		// Bukkit.getBanList(BanList.Type.NAME).addBan(playerName, getBanMessage(ban),
-		// expiration, null);
-		// if (p != null && p.isOnline())
-		p.kickPlayer(getBanMessage(ban));
+		if (p != null && p.isOnline())
+			p.kickPlayer(getBanMessage(ban));
 		String msg = __.PREFIX + ChatColor.GOLD + playerName + ChatColor.GREEN + " has been banned by " + ChatColor.GOLD
 				+ (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid)) + ChatColor.GREEN + " until "
 				+ ChatColor.GOLD
@@ -115,23 +117,14 @@ public class TerminatorManager implements Listener {
 	}
 
 	public void unban(UUID punishedUuid, String deleteReason, UUID deletePlayer) {
-		CommandSender sender;
 		TerminatorPlayer player = getPlayer(punishedUuid);
-		if (deletePlayer != null)
-			sender = Bukkit.getPlayer(deletePlayer);
-		else
-			sender = Bukkit.getConsoleSender();
-		String playerName = UUIDs.get(punishedUuid);
 		Ban ban = player.getBan();
-		if (ban == null) {
-			sender.sendMessage(__.PREFIX + ChatColor.RED + "Error: Player " + playerName + " isn't banned");
-			return;
-		}
 		ban.setDeleted(true);
 		ban.setDeletePlayer(deletePlayer);
 		ban.setDeleteReason(deleteReason);
-		// Bukkit.getBanList(BanList.Type.NAME).pardon(playerName);
-		sender.sendMessage(__.PREFIX + ChatColor.AQUA + playerName + ChatColor.GREEN + " is no longer banned");
+		Bukkit.broadcast(
+				__.PREFIX + ChatColor.AQUA + UUIDs.get(punishedUuid) + ChatColor.GREEN + " is no longer banned",
+				"terminator.ban.see");
 	}
 
 	public boolean isBanned(UUID uuid) {
@@ -163,23 +156,18 @@ public class TerminatorManager implements Listener {
 		return kicks;
 	}
 
-	public void kick(UUID kickedUuid, UUID kickerUuid, String reason) {
-		Kick kick = new Kick(kickedUuid, kickerUuid, reason);
-		TerminatorPlayer player = getPlayer(kickedUuid);
-		String playerName = UUIDs.get(kickedUuid);
-		CommandSender sender;
-		if (kickerUuid != null)
-			sender = Bukkit.getPlayer(kickerUuid);
-		else
-			sender = Bukkit.getConsoleSender();
+	public void kick(UUID punishedUuid, UUID punisherUuid, String reason) {
+		Kick kick = new Kick(punishedUuid, punisherUuid, reason);
+		TerminatorPlayer player = getPlayer(punishedUuid);
+		String playerName = UUIDs.get(punishedUuid);
 		kicks.add(kick);
 		player.addKick(kick);
-		Player p = Bukkit.getPlayer(kickedUuid);
+		Player p = Bukkit.getPlayer(punishedUuid);
 		if (p != null)
 			p.kickPlayer(__.PREFIX + "\n" + ChatColor.GRAY + "You have been kicked for\n " + ChatColor.GOLD + reason);
 		Bukkit.broadcast(
 				ChatColor.GOLD + playerName + ChatColor.GRAY + " has been kicked by " + ChatColor.GOLD
-						+ UUIDs.get(kickerUuid) + ChatColor.GRAY + "§afor " + ChatColor.GOLD + reason,
+						+ UUIDs.get(punisherUuid) + ChatColor.GRAY + "§afor " + ChatColor.GOLD + reason,
 				"terminator.kick.see");
 		// TODO Save in database
 	}
@@ -190,37 +178,25 @@ public class TerminatorManager implements Listener {
 		return mutes;
 	}
 
-	public void mute(UUID mutedUuid, UUID muterUuid, String reason, Date expiration) {
-		Mute mute = new Mute(mutedUuid, muterUuid, reason, expiration);
-		TerminatorPlayer player = getPlayer(mutedUuid);
-		CommandSender sender;
-		if (muterUuid != null)
-			sender = Bukkit.getPlayer(muterUuid);
-		else
-			sender = Bukkit.getConsoleSender();
-		// Check if player is already banned
+	public void mute(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
+		Mute mute = new Mute(punishedUuid, punisherUuid, reason, expiration);
+		TerminatorPlayer player = getPlayer(punishedUuid);
 		mutes.add(mute);
 		player.addMute(mute);
-		Player p = Bukkit.getPlayer(mutedUuid);
-		String msg = __.PREFIX + ChatColor.GOLD + UUIDs.get(mutedUuid) + ChatColor.GREEN + " has been muted by "
-				+ ChatColor.GOLD + (mutedUuid == null ? "CONSOLE" : UUIDs.get(mutedUuid)) + ChatColor.GREEN + " until "
-				+ ChatColor.GOLD
+		String msg = __.PREFIX + ChatColor.GOLD + UUIDs.get(punishedUuid) + ChatColor.GREEN + " has been muted by "
+				+ ChatColor.GOLD + (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid)) + ChatColor.GREEN
+				+ " until " + ChatColor.GOLD
 				+ (expiration == null ? "never" : new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(expiration));
 		Bukkit.broadcast(msg, "terminator.mute.see");
 	}
 
-	public void unmute(UUID mutedUuid, String deleteReason, UUID deletePlayer) {
-		TerminatorPlayer player = getPlayer(mutedUuid);
-		CommandSender sender;
-		if (deletePlayer != null)
-			sender = Bukkit.getPlayer(deletePlayer);
-		else
-			sender = Bukkit.getConsoleSender();
-		Mute mute = getPlayer(mutedUuid).getMute();
+	public void unmute(UUID punishedUuid, String deleteReason, UUID deletePlayer) {
+		Mute mute = getPlayer(punishedUuid).getMute();
 		mute.setDeleted(true);
 		mute.setDeletePlayer(deletePlayer);
 		mute.setDeleteReason(deleteReason);
-		sender.sendMessage(__.PREFIX + ChatColor.AQUA + UUIDs.get(mutedUuid) + ChatColor.GREEN + " is no longer muted");
+		Bukkit.broadcast(__.PREFIX + ChatColor.AQUA + UUIDs.get(punishedUuid) + ChatColor.GREEN + " is no longer muted",
+				"terminator.mute.see");
 	}
 
 	public boolean isMuted(UUID uuid) {
@@ -263,5 +239,71 @@ public class TerminatorManager implements Listener {
 
 	public boolean isBypass(UUID uuid) {
 		return getPlayer(uuid).isBypass();
+	}
+
+	// ---------------------- INVENTORY ----------------------
+
+	/**
+	 * Open the main inventory
+	 * 
+	 * @param p
+	 *              The player
+	 */
+	public void openMainInventory(Player p) {
+		Terminator.get().getInventorymanager().openInventory(mainInventory, p);
+	}
+
+	/**
+	 * Open the ban history for specific player at specific page<br />
+	 * If player is null, open all bans history
+	 * 
+	 * @param p
+	 *                   The player that open the inventory
+	 * @param page
+	 *                   The actual page number
+	 * @param player
+	 *                   The player that we want to show the history. Can be null
+	 */
+	public void openBanHistInventory(Player p, int page, TerminatorPlayer player) {
+		Terminator.get().getInventorymanager().openInventory(banHistInventory, p, inv -> {
+			inv.put(BanHistInventory.PAGE, page <= 0 ? 1 : page);
+			inv.put(BanHistInventory.USER, player);
+		});
+	}
+
+	/**
+	 * Open the kick history for specific player at specific page<br />
+	 * If player is null, open all kicks history
+	 * 
+	 * @param p
+	 *                   The player that open the inventory
+	 * @param page
+	 *                   The actual page number
+	 * @param player
+	 *                   The player that we want to show the history. Can be null
+	 */
+	public void openKickHistInventory(Player p, int page, TerminatorPlayer player) {
+		Terminator.get().getInventorymanager().openInventory(kickHistInventory, p, inv -> {
+			inv.put(KickHistInventory.PAGE, page <= 0 ? 1 : page);
+			inv.put(KickHistInventory.USER, player);
+		});
+	}
+
+	/**
+	 * Open the mute history for specific player at specific page<br />
+	 * If player is null, open all mutes history
+	 * 
+	 * @param p
+	 *                   The player that open the inventory
+	 * @param page
+	 *                   The actual page number
+	 * @param player
+	 *                   The player that we want to show the history. Can be null
+	 */
+	public void openMuteHistInventory(Player p, int page, TerminatorPlayer player) {
+		Terminator.get().getInventorymanager().openInventory(muteHistInventory, p, inv -> {
+			inv.put(KickHistInventory.PAGE, page <= 0 ? 1 : page);
+			inv.put(KickHistInventory.USER, player);
+		});
 	}
 }

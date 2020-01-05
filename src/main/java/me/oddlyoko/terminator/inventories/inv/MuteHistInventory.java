@@ -18,10 +18,10 @@ import me.oddlyoko.terminator.inventories.ClickableItem;
 import me.oddlyoko.terminator.inventories.Inventory;
 import me.oddlyoko.terminator.inventories.InventoryProvider;
 import me.oddlyoko.terminator.inventories.ItemBuilder;
-import me.oddlyoko.terminator.terminator.Ban;
+import me.oddlyoko.terminator.terminator.Mute;
 import me.oddlyoko.terminator.terminator.TerminatorPlayer;
 
-public class BanHistInventory implements InventoryProvider {
+public class MuteHistInventory implements InventoryProvider {
 	public static final String PAGE = "page";
 	public static final String USER = "user";
 	public static final String UPDATE = "update";
@@ -46,7 +46,7 @@ public class BanHistInventory implements InventoryProvider {
 
 	@Override
 	public String title(Inventory inv) {
-		return ChatColor.GREEN + "Ban History" + (inv.get(USER) == null ? ""
+		return ChatColor.GREEN + "Mute History" + (inv.get(USER) == null ? ""
 				: " > " + ChatColor.GOLD + UUIDs.get(((TerminatorPlayer) inv.get(USER)).getUuid()));
 	}
 
@@ -76,8 +76,8 @@ public class BanHistInventory implements InventoryProvider {
 		TerminatorPlayer user = null;
 		if (oUser != null)
 			user = (TerminatorPlayer) oUser;
-		List<Ban> bans = (user == null) ? Terminator.get().getTerminatorManager().getBans() : user.getBans();
-		int banPages = (bans.size() - 1) / 27 + 1;
+		List<Mute> mutes = (user == null) ? Terminator.get().getTerminatorManager().getMutes() : user.getMutes();
+		int mutePages = (mutes.size() - 1) / 27 + 1;
 		int page = (int) inv.get(PAGE);
 		if (page > 1) {
 			// Left arrow
@@ -88,7 +88,7 @@ public class BanHistInventory implements InventoryProvider {
 			}));
 		} else
 			inv.set(1, 5, BLACKBACKGROUND);
-		if (page < banPages) {
+		if (page < mutePages) {
 			// Right arrow
 			inv.set(9, 5, ClickableItem.of(NEXT, e -> {
 				// Update
@@ -103,9 +103,9 @@ public class BanHistInventory implements InventoryProvider {
 			inv.put(UPDATE, true);
 			return;
 		}
-		if (page > banPages) {
+		if (page > mutePages) {
 			// Outside
-			inv.put(PAGE, banPages);
+			inv.put(PAGE, mutePages);
 			inv.put(UPDATE, true);
 			return;
 		}
@@ -113,26 +113,26 @@ public class BanHistInventory implements InventoryProvider {
 		inv.fillRectangle(1, 2, 9, 3, ClickableItem.of(new ItemStack(Material.AIR)));
 		int from = (page - 1) * 27;
 		for (int i = 0; i < 27; i++) {
-			if (from + i >= bans.size())
+			if (from + i >= mutes.size())
 				break;
-			inv.set(i + 9, ClickableItem.of(getBanSkull(bans.get(from + i))));
+			inv.set(i + 9, ClickableItem.of(getMuteSkull(mutes.get(from + i))));
 		}
 	}
 
-	private ItemStack getBanSkull(Ban ban) {
+	private ItemStack getMuteSkull(Mute mute) {
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 		ItemStack skull = ItemBuilder.of(Material.PLAYER_HEAD).build();
 		SkullMeta meta = (SkullMeta) skull.getItemMeta();
-		meta.setOwningPlayer(Bukkit.getOfflinePlayer(ban.getPunishedUuid()));
-		meta.setDisplayName(ChatColor.GOLD + UUIDs.get(ban.getPunishedUuid()));
+		meta.setOwningPlayer(Bukkit.getOfflinePlayer(mute.getPunishedUuid()));
+		meta.setDisplayName(ChatColor.GOLD + Bukkit.getOfflinePlayer(mute.getPunishedUuid()).getName());
 		List<String> lore = new ArrayList<>();
-		lore.add(ChatColor.YELLOW + "Banned by: " + ChatColor.GOLD
-				+ (ban.getPunisherUuid() == null ? "CONSOLE" : UUIDs.get(ban.getPunisherUuid())));
-		lore.add(ChatColor.YELLOW + "At: " + ChatColor.GOLD + format.format(ban.getCreationDate()));
+		lore.add(ChatColor.YELLOW + "Muted by: " + ChatColor.GOLD
+				+ (mute.getPunisherUuid() == null ? "CONSOLE" : UUIDs.get(mute.getPunisherUuid())));
+		lore.add(ChatColor.YELLOW + "At: " + ChatColor.GOLD + format.format(mute.getCreationDate()));
 		lore.add(ChatColor.YELLOW + "Until: " + ChatColor.GOLD
-				+ (ban == null ? "NEVER" : format.format(ban.getExpiration())));
-		lore.add(ChatColor.YELLOW + "Reason: " + ChatColor.GOLD + ban.getReason());
-		lore.add(ChatColor.BOLD + (ban.isExpired() ? ChatColor.GREEN + "[Expired]" : ChatColor.RED + "[On]"));
+				+ (mute == null ? "NEVER" : format.format(mute.getExpiration())));
+		lore.add(ChatColor.YELLOW + "Reason: " + ChatColor.GOLD + mute.getReason());
+		lore.add(ChatColor.BOLD + (mute.isExpired() ? ChatColor.GREEN + "[Expired]" : ChatColor.RED + "[On]"));
 		meta.setLore(lore);
 		skull.setItemMeta(meta);
 		return skull;

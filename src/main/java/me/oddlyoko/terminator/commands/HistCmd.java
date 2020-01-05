@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.oddlyoko.terminator.Terminator;
-import me.oddlyoko.terminator.inventories.inv.MainInventory;
 
 public class HistCmd extends Cmds implements CommandExecutor {
 
@@ -18,8 +17,7 @@ public class HistCmd extends Cmds implements CommandExecutor {
 			if (!(sender instanceof Player))
 				return true;
 			Player p = (Player) sender;
-			Terminator.get().getInventorymanager().openInventory(new MainInventory(), p, i -> {
-			});
+			Terminator.get().getTerminatorManager().openMainInventory(p);
 		}
 		return false;
 	}

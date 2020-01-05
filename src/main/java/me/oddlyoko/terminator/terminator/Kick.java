@@ -5,20 +5,30 @@ import java.util.UUID;
 
 public class Kick {
 	private long sanctionId;
-	private UUID kickerUuid;
-	private UUID kickedUuid;
+	private UUID punishedUuid;
+	// If punisher is null then the mute didn't come from a player but from the
+	// console
+	private UUID punisherUuid;
 	private String reason;
 	private Date creationDate;
 
-	public Kick(UUID kickedUuid, UUID kickerUuid, String reason) {
-		this.kickedUuid = kickedUuid;
-		this.kickerUuid = kickerUuid;
+	public Kick(UUID punishedUuid, UUID punisherUuid, String reason) {
+		this.punishedUuid = punishedUuid;
+		this.punisherUuid = punisherUuid;
 		this.reason = reason;
 		this.creationDate = new Date();
 	}
 
 	public long getSanctionId() {
 		return sanctionId;
+	}
+
+	public UUID getPunishedUuid() {
+		return punishedUuid;
+	}
+
+	public UUID getPunisherUuid() {
+		return punisherUuid;
 	}
 
 	public String getReason() {
@@ -28,21 +38,4 @@ public class Kick {
 	public Date getCreationDate() {
 		return creationDate;
 	}
-
-	public UUID getKickerUuid() {
-		return kickerUuid;
-	}
-
-	public void setKickerUuid(UUID kickerUuid) {
-		this.kickerUuid = kickerUuid;
-	}
-
-	public UUID getKickedUuid() {
-		return kickedUuid;
-	}
-
-	public void setKickedUuid(UUID kickedUuid) {
-		this.kickedUuid = kickedUuid;
-	}
-
 }

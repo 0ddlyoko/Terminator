@@ -26,7 +26,8 @@ public class Inventory {
 		this.values = new HashMap<>();
 		this.player = player;
 		this.inventoryProvider = inventoryProvider;
-		params.accept(this);
+		if (params != null)
+			params.accept(this);
 		this.excluseCases = inventoryProvider.excluseCases(this);
 		this.size = inventoryProvider.rows(this);
 		this.items = new ClickableItem[9 * size];
@@ -78,13 +79,13 @@ public class Inventory {
 	public void rectangle(int col, int row, int width, int height, ClickableItem item) {
 		if (col < 1 || col > 9)
 			throw new IllegalArgumentException("col must be between 1 and 9");
-		if (row < 1 || row > 6)
-			throw new IllegalArgumentException("row must be between 1 and the maximum number of rows");
+		if (row < 1 || row > getRows())
+			throw new IllegalArgumentException("row must be between 1 and the maximum number of rows, but is " + row);
 		// 10 - col because width starts with 1 and not 0
 		if (width < 1 || width > 10 - col)
-			throw new IllegalArgumentException("The width must be between 1 and " + (10 - col));
-		if (height < 1 || height > getRows() + 1 - col)
-			throw new IllegalArgumentException("The height must be between 1 and " + (getRows() + 1 - col));
+			throw new IllegalArgumentException("The width must be between 1 and " + (10 - col) + ", but is " + width);
+		if (height < 1 || height > getRows() + 1 - row)
+			throw new IllegalArgumentException("The height must be between 1 and " + (getRows() + 1 - row));
 		rectangle(locToPos(col, row), width, height, item);
 	}
 
@@ -92,8 +93,8 @@ public class Inventory {
 		if (pos < 0 || pos > size * 9)
 			throw new IllegalArgumentException("pos must be between 0 and " + (size * 9) + ", but is " + pos);
 		int[] colRow = posToLoc(pos);
-		int col = colRow[0];
-		int row = colRow[1];
+		int row = colRow[0];
+		int col = colRow[1];
 		if (col < 1 || col > 9)
 			throw new IllegalArgumentException("col must be between 1 and 9, but is " + col);
 		if (row < 1 || row > 6)
@@ -101,9 +102,9 @@ public class Inventory {
 		// 10 - col because width starts with 1 and not 0
 		if (width < 1 || width > 10 - col)
 			throw new IllegalArgumentException("The width must be between 1 and " + (10 - col) + ", but is " + width);
-		if (height < 1 || height > size + 1 - row)
+		if (height < 1 || height > getRows() + 1 - row)
 			throw new IllegalArgumentException(
-					"The height must be between 1 and " + (size + 1 - row) + ", but is " + height);
+					"The height must be between 1 and " + (getRows() + 1 - row) + ", but is " + height);
 		for (int i = col; i < col + width; i++)
 			for (int j = row; j < row + height; j++)
 				// Around
@@ -139,9 +140,9 @@ public class Inventory {
 		// 10 - col because width starts with 1 and not 0
 		if (width < 1 || width > 10 - col)
 			throw new IllegalArgumentException("The width must be between 1 and " + (10 - col) + ", but is " + width);
-		if (height < 1 || height > size + 1 - row)
+		if (height < 1 || height > getRows() + 1 - row)
 			throw new IllegalArgumentException(
-					"The height must be between 1 and " + (size + 1 - row) + ", but is " + height);
+					"The height must be between 1 and " + (getRows() + 1 - row) + ", but is " + height);
 		for (int i = col; i < col + width; i++)
 			for (int j = row; j < row + height; j++)
 				set(i, j, item);

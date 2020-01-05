@@ -56,14 +56,14 @@ public class Terminator extends JavaPlugin implements Listener {
 		getCommand("hist").setExecutor(new HistCmd());
 		getCommand("bypass").setExecutor(new BypassCmd());
 	}
-	
+
 	@Override
 	public void onDisable() {
 		if (uuidTask != null)
 			uuidTask.cancel();
 		UUIDs.save();
 	}
-	
+
 	@EventHandler
 	public void onPlayerLogin(PlayerLoginEvent e) {
 		Player p = e.getPlayer();

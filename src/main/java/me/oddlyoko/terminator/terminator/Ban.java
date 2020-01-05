@@ -11,7 +11,6 @@ public class Ban {
 	private UUID punisherUuid;
 	private String reason;
 	private Date creationDate;
-
 	private Date expiration;
 	private boolean isDeleted;
 	private String deleteReason;
@@ -71,5 +70,12 @@ public class Ban {
 
 	public void setDeletePlayer(UUID deletePlayer) {
 		this.deletePlayer = deletePlayer;
+	}
+
+	/**
+	 * @return true if this ban has expired
+	 */
+	public boolean isExpired() {
+		return isDeleted || (expiration != null && new Date().after(expiration));
 	}
 }

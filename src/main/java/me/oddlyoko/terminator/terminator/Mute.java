@@ -5,8 +5,10 @@ import java.util.UUID;
 
 public class Mute {
 	private long sanctionId;
-	private UUID muterUuid;
-	private UUID mutedUuid;
+	private UUID punishedUuid;
+	// If punisher is null then the mute didn't come from a player but from the
+	// console
+	private UUID punisherUuid;
 	private String reason;
 	private Date creationDate;
 	private Date expiration;
@@ -14,9 +16,9 @@ public class Mute {
 	private String deleteReason;
 	private UUID deletePlayer;
 
-	public Mute(UUID mutedUuid, UUID muterUuid, String reason, Date expiration) {
-		this.mutedUuid = mutedUuid;
-		this.muterUuid = muterUuid;
+	public Mute(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
+		this.punishedUuid = punishedUuid;
+		this.punisherUuid = punisherUuid;
 		this.reason = reason;
 		this.expiration = expiration;
 		this.creationDate = new Date();
@@ -24,6 +26,14 @@ public class Mute {
 
 	public long getSanctionId() {
 		return sanctionId;
+	}
+
+	public UUID getPunishedUuid() {
+		return punishedUuid;
+	}
+
+	public UUID getPunisherUuid() {
+		return punisherUuid;
 	}
 
 	public String getReason() {
@@ -62,11 +72,10 @@ public class Mute {
 		this.deletePlayer = deletePlayer;
 	}
 
-	public UUID getMuterUuid() {
-		return muterUuid;
-	}
-
-	public UUID getMutedUuid() {
-		return mutedUuid;
+	/**
+	 * @return true if this ban has expired
+	 */
+	public boolean isExpired() {
+		return isDeleted || (expiration != null && new Date().after(expiration));
 	}
 }

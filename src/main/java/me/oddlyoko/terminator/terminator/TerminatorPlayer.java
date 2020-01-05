@@ -1,7 +1,6 @@
 package me.oddlyoko.terminator.terminator;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,11 +38,11 @@ public class TerminatorPlayer {
 
 	public void addBan(Ban ban) {
 		bans.add(ban);
-		isCurrentlyBanned = !ban.isDeleted() && (ban.getExpiration() == null || new Date().before(ban.getExpiration()));
+		isCurrentlyBanned = !ban.isExpired();
 	}
 
 	/**
-	 * Recheck if player is banned by checking if the last ban is still active
+	 * Check if player is banned by checking if the last ban is still active
 	 */
 	private void checkBan() {
 		if (bans.size() == 0) {
@@ -52,7 +51,7 @@ public class TerminatorPlayer {
 		}
 		Ban ban = bans.get(bans.size() - 1);
 		// Check if ban is expired
-		isCurrentlyBanned = !ban.isDeleted() && (ban.getExpiration() == null || new Date().before(ban.getExpiration()));
+		isCurrentlyBanned = !ban.isExpired();
 	}
 
 	public boolean isBanned() {
@@ -81,10 +80,12 @@ public class TerminatorPlayer {
 
 	public void addMute(Mute mute) {
 		mutes.add(mute);
-		isCurrentlyMuted = !mute.isDeleted()
-				&& (mute.getExpiration() == null || new Date().before(mute.getExpiration()));
+		isCurrentlyMuted = !mute.isExpired();
 	}
 
+	/**
+	 * Check if player is muted by checking if the last mute is still active
+	 */
 	private void checkMute() {
 		// Do not check if he's not muted
 		if (!isCurrentlyMuted)
@@ -95,8 +96,7 @@ public class TerminatorPlayer {
 		}
 		Mute mute = mutes.get(mutes.size() - 1);
 		// Check if mute is expired
-		isCurrentlyMuted = !mute.isDeleted()
-				&& (mute.getExpiration() == null || new Date().before(mute.getExpiration()));
+		isCurrentlyMuted = !mute.isExpired();
 	}
 
 	public boolean isMuted() {

@@ -42,7 +42,7 @@ public class BanCmd extends Cmds implements CommandExecutor {
 				return false;
 			}
 			StringBuilder reason = new StringBuilder();
-			for (int i = 1; i < args.length; i++)
+			for (int i = 2; i < args.length; i++)
 				reason.append(args[i]).append(" ");
 			// Remove last space
 			reason.setLength(reason.length() - 1);
