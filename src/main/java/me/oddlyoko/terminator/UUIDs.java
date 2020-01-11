@@ -13,6 +13,10 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 public class UUIDs {
 	private static File f;
 
@@ -147,29 +151,15 @@ public class UUIDs {
 	public static void load() {
 	}
 
+	@Getter
+	@AllArgsConstructor
 	private static class Pear {
+		@Setter
 		private String pseudo;
 		private UUID uuid;
 
-		private Pear(String pseudo, UUID uuid) {
-			this.pseudo = pseudo;
-			this.uuid = uuid;
-		}
-
 		public static Pear of(String pseudo, UUID uuid) {
 			return new Pear(pseudo, uuid);
-		}
-
-		public String getPseudo() {
-			return pseudo;
-		}
-
-		public void setPseudo(String pseudo) {
-			this.pseudo = pseudo;
-		}
-
-		public UUID getUuid() {
-			return uuid;
 		}
 	}
 }

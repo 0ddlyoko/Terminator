@@ -1,3 +1,10 @@
+host: localhost
+port: 3306
+dbname: terminator
+user: root
+password:
+# If true, use MySQL. If false, use MariaDB
+mysql: true
 ban_message:
 - "{PREFIX}"
 - "&7You have been banned from the server" 

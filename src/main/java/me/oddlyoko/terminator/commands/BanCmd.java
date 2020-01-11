@@ -21,6 +21,10 @@ public class BanCmd extends Cmds implements CommandExecutor {
 				sender.sendMessage(error("You don't have permission to use this command"));
 				return true;
 			}
+			if (Terminator.get().getTerminatorManager().isLoading()) {
+				sender.sendMessage(error("Please wait until plugin is fully loaded"));
+				return true;
+			}
 			if (args.length < 3) {
 				sender.sendMessage(syntax("/ban <pseudo> <time> <reason>"));
 				return true;

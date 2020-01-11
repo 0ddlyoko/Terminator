@@ -3,11 +3,14 @@ package me.oddlyoko.terminator.terminator;
 import java.util.Date;
 import java.util.UUID;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
+@AllArgsConstructor
 public class Mute {
+	@Setter
 	private long sanctionId;
 	private UUID punishedUuid;
 	// If punisher is null then the mute didn't come from a player but from the

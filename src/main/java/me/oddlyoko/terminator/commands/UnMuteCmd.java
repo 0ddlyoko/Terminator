@@ -20,6 +20,10 @@ public class UnMuteCmd extends Cmds implements CommandExecutor {
 				sender.sendMessage(error("You don't have permission to use this command"));
 				return true;
 			}
+			if (Terminator.get().getTerminatorManager().isLoading()) {
+				sender.sendMessage(error("Please wait until plugin is fully loaded"));
+				return true;
+			}
 			if (args.length < 2) {
 				sender.sendMessage(syntax("/unmute <pseudo> <reason>"));
 				return true;

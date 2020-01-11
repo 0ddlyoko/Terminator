@@ -2,18 +2,24 @@ package me.oddlyoko.terminator.inventories.inv;
 
 import java.util.Arrays;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import me.oddlyoko.terminator.Terminator;
+import me.oddlyoko.terminator.UUIDs;
 import me.oddlyoko.terminator.__;
 import me.oddlyoko.terminator.inventories.ClickableItem;
 import me.oddlyoko.terminator.inventories.Inventory;
 import me.oddlyoko.terminator.inventories.InventoryProvider;
 import me.oddlyoko.terminator.inventories.ItemBuilder;
+import me.oddlyoko.terminator.terminator.TerminatorPlayer;
 
 public class MainInventory implements InventoryProvider {
+	public static final String USER = "user";
 
 	private final org.bukkit.inventory.ItemStack banHead = ItemBuilder.of(Material.PLAYER_HEAD)
 			.name(ChatColor.BOLD + ChatColor.RED.toString() + "BANS")
@@ -50,18 +56,28 @@ public class MainInventory implements InventoryProvider {
 
 	@Override
 	public void init(Inventory inv) {
+		Object oUser = inv.get(USER);
+		final TerminatorPlayer user = oUser == null ? null : (TerminatorPlayer) oUser;
 		inv.fillRectangle(0, 9, 3, BLACKBACKGROUND);
+		if (user != null) {
+			ItemStack skull = ItemBuilder.of(Material.PLAYER_HEAD).build();
+			SkullMeta meta = (SkullMeta) skull.getItemMeta();
+			meta.setOwningPlayer(Bukkit.getOfflinePlayer(user.getUuid()));
+			meta.setDisplayName(ChatColor.GOLD + UUIDs.get(user.getUuid()));
+			skull.setItemMeta(meta);
+			inv.set(9, 1, ClickableItem.of(skull));
+		}
 		inv.set(11, ClickableItem.of(banHead, e -> {
 			Player p = (Player) e.getWhoClicked();
-			Terminator.get().getTerminatorManager().openBanHistInventory(p, 1, null);
+			Terminator.get().getTerminatorManager().openBanHistInventory(p, 1, user);
 		}));
 		inv.set(13, ClickableItem.of(muteHead, e -> {
 			Player p = (Player) e.getWhoClicked();
-			Terminator.get().getTerminatorManager().openMuteHistInventory(p, 1, null);
+			Terminator.get().getTerminatorManager().openMuteHistInventory(p, 1, user);
 		}));
 		inv.set(15, ClickableItem.of(kickHead, e -> {
 			Player p = (Player) e.getWhoClicked();
-			Terminator.get().getTerminatorManager().openKickHistInventory(p, 1, null);
+			Terminator.get().getTerminatorManager().openKickHistInventory(p, 1, user);
 		}));
 		inv.set(0, VERSION);
 	}

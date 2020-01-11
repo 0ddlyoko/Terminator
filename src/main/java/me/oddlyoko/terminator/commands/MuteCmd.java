@@ -22,6 +22,10 @@ public class MuteCmd extends Cmds implements CommandExecutor {
 				sender.sendMessage(error("You don't have permission to use this command"));
 				return true;
 			}
+			if (Terminator.get().getTerminatorManager().isLoading()) {
+				sender.sendMessage(error("Please wait until plugin is fully loaded"));
+				return true;
+			}
 			if (args.length < 3) {
 				sender.sendMessage(syntax("/mute <pseudo> <time> <reason>"));
 				return true;
@@ -36,11 +40,11 @@ public class MuteCmd extends Cmds implements CommandExecutor {
 			}
 			if (time == -1) {
 				sender.sendMessage(error("Cannot parse " + strTime + " to a correct time"));
-				return false;
+				return true;
 			}
 			if (time < 0) {
 				sender.sendMessage(error("Time must be greater or equals to 0"));
-				return false;
+				return true;
 			}
 			StringBuilder reason = new StringBuilder();
 			for (int i = 2; i < args.length; i++)
