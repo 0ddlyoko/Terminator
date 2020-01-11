@@ -27,13 +27,27 @@ import java.util.List;
 public class ConfigManager {
 	private Config config;
 	private List<String> banMessage;
-
+	private List<String> banReason;
+	private List<String> KickReason;
+	private List<String> MuteReason;
 	public ConfigManager() {
 		config = new Config(new File("plugins" + File.separator + "Terminator" + File.separator + "config.yml"));
 		banMessage = config.getStringList("ban_message");
+		banReason = config.getStringList("ban_reason");
+		KickReason = config.getStringList("kick_reason");
+		MuteReason = config.getStringList("mute_reason");
 	}
 
 	public List<String> getBanMessage() {
 		return banMessage;
+	}
+	public List<String> getBanReason() {
+		return banReason;
+	}
+	public List<String> getKickReason() {
+		return KickReason;
+	}
+	public List<String> getMuteReason() {
+		return MuteReason;
 	}
 }

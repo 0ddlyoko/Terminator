@@ -79,4 +79,9 @@ public class Terminator extends JavaPlugin implements Listener {
 	public static Terminator get() {
 		return TERMINATOR;
 	}
+
+	public TerminatorManager getTerminatorManager() {
+		// TODO Auto-generated method stub
+		return terminatorManager;
+	}
 }

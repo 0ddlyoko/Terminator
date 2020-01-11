@@ -13,6 +13,7 @@ public class Mute {
 	// If punisher is null then the mute didn't come from a player but from the
 	// console
 	private UUID punisherUuid;
+	@Setter
 	private String reason;
 	private Date creationDate;
 	private Date expiration;

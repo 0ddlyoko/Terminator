@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public class Kick {
@@ -12,6 +13,7 @@ public class Kick {
 	// If punisher is null then the mute didn't come from a player but from the
 	// console
 	private UUID punisherUuid;
+	@Setter
 	private String reason;
 	private Date creationDate;
 

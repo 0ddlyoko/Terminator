@@ -8,3 +8,18 @@ ban_message:
 - ""
 - "&7Expiration time:"
 - "&6{EXPIRATION}"
+
+ban_reason:
+- "none"
+- "Cheat"
+- "XRay"
+- "Le marteau du ban a frappé !"
+- "Asta la vista baby"
+
+mute_reason:
+- "Insultes"
+- "Spam"
+
+kick_reason:
+- "AFK"
+- "Comportement incorrect"

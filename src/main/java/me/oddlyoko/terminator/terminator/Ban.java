@@ -13,6 +13,7 @@ public class Ban {
 	// If punisher is null then the ban didn't come from a player but from the
 	// console
 	private UUID punisherUuid;
+	@Setter
 	private String reason;
 	private Date creationDate;
 	private Date expiration;
