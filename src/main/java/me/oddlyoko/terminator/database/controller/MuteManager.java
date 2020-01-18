@@ -98,7 +98,7 @@ public class MuteManager {
 			List<MuteModel> mutes = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
-				int sanctionId = rs.getInt("sanction_id");
+				long sanctionId = rs.getLong("sanction_id");
 				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
 				String strPunisherUuid = rs.getString("punisher_uuid");
 				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
@@ -151,7 +151,7 @@ public class MuteManager {
 			List<MuteModel> mutes = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
-				int sanctionId = rs.getInt("sanction_id");
+				long sanctionId = rs.getLong("sanction_id");
 				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
 				String strPunisherUuid = rs.getString("punisher_uuid");
 				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);

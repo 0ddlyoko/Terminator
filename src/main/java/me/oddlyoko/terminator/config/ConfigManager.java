@@ -42,6 +42,8 @@ public class ConfigManager {
 	private boolean mysql;
 	@Getter
 	private List<String> banMessage;
+	@Getter
+	private List<String> banIpMessage;
 
 	public ConfigManager() {
 		config = new Config(new File("plugins" + File.separator + "Terminator" + File.separator + "config.yml"));
@@ -52,5 +54,6 @@ public class ConfigManager {
 		password = config.getString("password");
 		mysql = config.getBoolean("mysql");
 		banMessage = config.getStringList("ban_message");
+		banIpMessage = config.getStringList("banip_message");
 	}
 }

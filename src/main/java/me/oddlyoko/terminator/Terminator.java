@@ -12,12 +12,14 @@ import org.bukkit.scheduler.BukkitTask;
 
 import lombok.Getter;
 import me.oddlyoko.terminator.commands.BanCmd;
+import me.oddlyoko.terminator.commands.BanIpCmd;
 import me.oddlyoko.terminator.commands.BypassCmd;
 import me.oddlyoko.terminator.commands.HistCmd;
 import me.oddlyoko.terminator.commands.KickCmd;
 import me.oddlyoko.terminator.commands.MuteCmd;
 import me.oddlyoko.terminator.commands.UnMuteCmd;
 import me.oddlyoko.terminator.commands.UnbanCmd;
+import me.oddlyoko.terminator.commands.UnbanIpCmd;
 import me.oddlyoko.terminator.config.ConfigManager;
 import me.oddlyoko.terminator.database.DatabaseManager;
 import me.oddlyoko.terminator.database.DatabaseModel;
@@ -70,6 +72,8 @@ public class Terminator extends JavaPlugin implements Listener {
 		Bukkit.getPluginManager().registerEvents(this, this);
 		getCommand("ban").setExecutor(new BanCmd());
 		getCommand("unban").setExecutor(new UnbanCmd());
+		getCommand("banip").setExecutor(new BanIpCmd());
+		getCommand("unbanip").setExecutor(new UnbanIpCmd());
 		getCommand("kick").setExecutor(new KickCmd());
 		getCommand("mute").setExecutor(new MuteCmd());
 		getCommand("unmute").setExecutor(new UnMuteCmd());

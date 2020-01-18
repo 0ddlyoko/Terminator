@@ -16,6 +16,8 @@ public class TerminatorPlayer {
 	private List<Mute> mutes;
 	private boolean isCurrentlyMuted;
 	@Setter
+	private TerminatorIp ip;
+	@Setter
 	private boolean bypass;
 
 	public TerminatorPlayer(UUID uuid) {

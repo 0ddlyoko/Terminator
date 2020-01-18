@@ -7,7 +7,17 @@ password:
 mysql: true
 ban_message:
 - "{PREFIX}"
-- "&7You have been banned from the server" 
+- "&7You have been banned from the server"
+- "&7If you think it's an error, please contact a moderator or an administrator on discord:"
+- "&6https://discord.gg/je4bcJW"
+- "&7Reason:"
+- "&6{REASON}"
+- ""
+- "&7Expiration time:"
+- "&6{EXPIRATION}"
+banip_message:
+- "{PREFIX}"
+- "&7Your ip have been banned from the server"
 - "&7If you think it's an error, please contact a moderator or an administrator on discord:"
 - "&6https://discord.gg/je4bcJW"
 - "&7Reason:"

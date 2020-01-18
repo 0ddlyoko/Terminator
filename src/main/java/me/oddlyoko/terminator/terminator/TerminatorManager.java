@@ -31,6 +31,7 @@ import lombok.Getter;
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
 import me.oddlyoko.terminator.__;
+import me.oddlyoko.terminator.database.model.BanIpModel;
 import me.oddlyoko.terminator.database.model.BanModel;
 import me.oddlyoko.terminator.database.model.KickModel;
 import me.oddlyoko.terminator.database.model.MuteModel;
@@ -41,6 +42,7 @@ import me.oddlyoko.terminator.inventories.inv.MuteHistInventory;
 
 public class TerminatorManager implements Listener {
 	private HashMap<UUID, TerminatorPlayer> players;
+	private HashMap<String, TerminatorIp> ips;
 	// Bans
 	@Getter
 	private List<Ban> bans;
@@ -48,6 +50,8 @@ public class TerminatorManager implements Listener {
 	private List<Kick> kicks;
 	@Getter
 	private List<Mute> mutes;
+	@Getter
+	private List<BanIp> banIp;
 	private Set<UUID> bypass;
 	private File bypassFile;
 
@@ -60,9 +64,11 @@ public class TerminatorManager implements Listener {
 
 	public TerminatorManager() {
 		players = new HashMap<>();
+		ips = new HashMap<>();
 		bans = new ArrayList<>();
 		kicks = new ArrayList<>();
 		mutes = new ArrayList<>();
+		banIp = new ArrayList<>();
 		bypass = new HashSet<>();
 		mainInventory = new MainInventory();
 		banHistInventory = new BanHistInventory();
@@ -183,7 +189,7 @@ public class TerminatorManager implements Listener {
 			});
 			Bukkit.getLogger().info(__.PREFIX + "Loading mutes ...");
 
-			// Bans
+			// Mutes
 			List<Mute> mutes = new ArrayList<>();
 			try {
 				List<UUID> muteUuids = Terminator.get().getDatabaseManager().getMuteManager()
@@ -227,6 +233,32 @@ public class TerminatorManager implements Listener {
 				}
 
 			});
+			Bukkit.getLogger().info(__.PREFIX + "Loading mutes ...");
+
+			// BanIp
+			List<BanIp> banIp = new ArrayList<>();
+			try {
+				List<BanIpModel> banIps = Terminator.get().getDatabaseManager().getBanIpManager()
+						.getIpsBanned(Terminator.get().getDatabaseModel());
+				System.out.println("Got " + banIps.size() + " ips");
+				for (BanIpModel banIpModel : banIps) {
+					TerminatorIp tip = getIp(banIpModel.getPunishedIp());
+					BanIp ban = new BanIp(banIpModel.getSanctionId(), banIpModel.getPunishedIp(),
+							banIpModel.getPunisherUuid(), banIpModel.getReason(),
+							banIpModel.getCreationDate() == null ? null
+									: new Date(banIpModel.getCreationDate().getTime()),
+							banIpModel.getExpiration() == null ? null : new Date(banIpModel.getExpiration().getTime()),
+							banIpModel.isDeleted(), banIpModel.getDeleteReason(), banIpModel.getDeletePlayer());
+					banIp.add(ban);
+					tip.addBan(ban);
+				}
+				this.banIp = banIp;
+			} catch (Exception ex) {
+				Bukkit.getLogger().log(Level.SEVERE, "An error has occured while retrieving ips", ex);
+				Bukkit.shutdown();
+			}
+
+			Bukkit.getLogger().info(__.PREFIX + banIp.size() + " ips loaded");
 			loading = false;
 		});
 		// TODO Load bans, mutes & kicks
@@ -239,6 +271,15 @@ public class TerminatorManager implements Listener {
 			players.put(uuid, tp);
 		}
 		return tp;
+	}
+
+	public TerminatorIp getIp(String ip) {
+		TerminatorIp tip = ips.get(ip);
+		if (tip == null) {
+			tip = new TerminatorIp(ip);
+			ips.put(ip, tip);
+		}
+		return tip;
 	}
 
 	// ---------------------- BAN ----------------------
@@ -311,17 +352,98 @@ public class TerminatorManager implements Listener {
 		return getPlayer(uuid).isBanned();
 	}
 
+	public void banIp(String punishedIp, UUID punisherUuid, String reason, Date expiration) {
+		BanIp ban = new BanIp(punishedIp, punisherUuid, reason, expiration);
+		TerminatorIp tip = getIp(punishedIp);
+		banIp.add(ban);
+		tip.addBan(ban);
+		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
+			try {
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					for (Player p2 : Bukkit.getOnlinePlayers()) {
+						if (punishedIp.equalsIgnoreCase(p2.getAddress().getAddress().getHostAddress())
+								&& !getPlayer(p2.getUniqueId()).isBypass())
+							p2.kickPlayer(getBanIpMessage(ban));
+					}
+				});
+				long id = Terminator.get().getDatabaseManager().getBanIpManager()
+						.addIpBan(
+								new BanIpModel(0, punishedIp, punisherUuid, reason, null,
+										new Timestamp(expiration.getTime()), false, null, null),
+								Terminator.get().getDatabaseModel());
+				ban.setSanctionId(id);
+				String msg = __.PREFIX + ChatColor.GOLD + punishedIp + ChatColor.GREEN + " has been banned by "
+						+ ChatColor.GOLD + (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid))
+						+ ChatColor.GREEN + " until " + ChatColor.GOLD + (expiration == null ? "never"
+								: new SimpleDateFormat("yyyy-MM-dd hh:MM:ss").format(expiration));
+				Bukkit.broadcast(msg, "terminator.banip.see");
+			} catch (Exception ex) {
+				Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving ban for ip " + ChatColor.GOLD
+						+ punishedIp + ChatColor.RED + ", ask ODD to fix that", "terminator.banip.see");
+				Bukkit.getLogger().log(Level.SEVERE, __.PREFIX + ChatColor.RED + "SQLException while saving ban for ip "
+						+ ChatColor.GOLD + punishedIp + ChatColor.RED + ", ask ODD to fix that", ex);
+			}
+		});
+	}
+
+	public void unbanIp(String ip, String deleteReason, UUID deletePlayer) {
+		TerminatorIp tip = getIp(ip);
+		BanIp ban = tip.getBan();
+		ban.setDeleted(true);
+		ban.setDeletePlayer(deletePlayer);
+		ban.setDeleteReason(deleteReason);
+		try {
+			if (ban.getSanctionId() == 0) {
+				Bukkit.broadcast(
+						__.PREFIX + ChatColor.AQUA + ip + ChatColor.GREEN
+								+ " is no longer banned but cannot update database because id is not set :(",
+						"terminator.banip.see");
+				return;
+			}
+			Terminator.get().getDatabaseManager().getBanIpManager().stopIpBan(
+					new BanIpModel(ban.getSanctionId(), null, null, null, null, null, true, deleteReason, deletePlayer),
+					Terminator.get().getDatabaseModel());
+			Bukkit.broadcast(__.PREFIX + ChatColor.AQUA + ip + ChatColor.GREEN + " is no longer banned",
+					"terminator.banip.see");
+		} catch (Exception ex) {
+			Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unban for ip " + ChatColor.GOLD + ip
+					+ ChatColor.RED + ", ask ODD to fix that", "terminator.banip.see");
+			Bukkit.getLogger().log(Level.SEVERE, __.PREFIX + ChatColor.RED + "SQLException while saving unban for ip "
+					+ ChatColor.GOLD + ip + ChatColor.RED + ", ask ODD to fix that", ex);
+		}
+	}
+
+	public boolean isBannedIp(String ip) {
+		return getIp(ip).isBanned();
+	}
+
 	@EventHandler
 	public void onPlayerJoin(PlayerLoginEvent e) {
+		TerminatorIp ip = getIp(e.getAddress().getHostAddress());
 		TerminatorPlayer p = getPlayer(e.getPlayer().getUniqueId());
+		p.setIp(ip);
 		Ban b = p.getBan();
 		if (b != null && !p.isBypass())
 			e.disallow(PlayerLoginEvent.Result.KICK_BANNED, getBanMessage(b));
+		BanIp banIp = p.getIp().getBan();
+		if (banIp != null && !p.isBypass())
+			e.disallow(PlayerLoginEvent.Result.KICK_BANNED, getBanIpMessage(banIp));
 	}
 
 	public String getBanMessage(Ban currentBan) {
 		StringBuilder sb = new StringBuilder();
 		List<String> banMessages = Terminator.get().getConfigManager().getBanMessage();
+		String expiration = (currentBan.getExpiration() == null ? "never"
+				: new SimpleDateFormat("yyyy-MM-dd hh:MM:ss").format(currentBan.getExpiration()));
+		for (String str : banMessages)
+			sb.append(str.replace("{PREFIX}", __.PREFIX).replace("{REASON}", currentBan.getReason())
+					.replace("{EXPIRATION}", expiration)).append('\n');
+		return sb.toString();
+	}
+
+	public String getBanIpMessage(BanIp currentBan) {
+		StringBuilder sb = new StringBuilder();
+		List<String> banMessages = Terminator.get().getConfigManager().getBanIpMessage();
 		String expiration = (currentBan.getExpiration() == null ? "never"
 				: new SimpleDateFormat("yyyy-MM-dd hh:MM:ss").format(currentBan.getExpiration()));
 		for (String str : banMessages)
@@ -347,7 +469,7 @@ public class TerminatorManager implements Listener {
 			kick.setSanctionId(id);
 			Bukkit.broadcast(
 					ChatColor.GOLD + playerName + ChatColor.GRAY + " has been kicked by " + ChatColor.GOLD
-							+ UUIDs.get(punisherUuid) + ChatColor.GRAY + "for " + ChatColor.GOLD + reason,
+							+ UUIDs.get(punisherUuid) + ChatColor.GRAY + " for " + ChatColor.GOLD + reason,
 					"terminator.kick.see");
 		} catch (Exception ex) {
 			Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving kick for player " + ChatColor.GOLD
@@ -375,8 +497,8 @@ public class TerminatorManager implements Listener {
 							Terminator.get().getDatabaseModel());
 			mute.setSanctionId(id);
 			String msg = __.PREFIX + ChatColor.GOLD + playerName + ChatColor.GREEN + " has been muted by "
-					+ ChatColor.GOLD + (punisherUuid == null ? "CONSOLE" : playerName) + ChatColor.GREEN + " until "
-					+ ChatColor.GOLD
+					+ ChatColor.GOLD + (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid)) + ChatColor.GREEN
+					+ " until " + ChatColor.GOLD
 					+ (expiration == null ? "never" : new SimpleDateFormat("yyyy-MM-dd hh:MM:ss").format(expiration));
 			Bukkit.broadcast(msg, "terminator.mute.see");
 		} catch (Exception ex) {
