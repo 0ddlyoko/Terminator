@@ -233,7 +233,7 @@ public class TerminatorManager implements Listener {
 				}
 
 			});
-			Bukkit.getLogger().info(__.PREFIX + "Loading mutes ...");
+			Bukkit.getLogger().info(__.PREFIX + "Loading ips ...");
 
 			// BanIp
 			List<BanIp> banIp = new ArrayList<>();
@@ -291,12 +291,10 @@ public class TerminatorManager implements Listener {
 		bans.add(ban);
 		player.addBan(ban);
 		Player p = Bukkit.getPlayer(punishedUuid);
+		if (p != null && p.isOnline())
+			p.kickPlayer(getBanMessage(ban));
 		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
 			try {
-				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
-					if (p != null && p.isOnline())
-						p.kickPlayer(getBanMessage(ban));
-				});
 				long id = Terminator.get().getDatabaseManager().getBanManager()
 						.addBan(new BanModel(0, punishedUuid, punisherUuid, reason, null,
 								new Timestamp(expiration.getTime()), false, null, null),
@@ -306,14 +304,21 @@ public class TerminatorManager implements Listener {
 						+ ChatColor.GOLD + (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid))
 						+ ChatColor.GREEN + " until " + ChatColor.GOLD + (expiration == null ? "never"
 								: new SimpleDateFormat("yyyy-MM-dd hh:MM:ss").format(expiration));
-				Bukkit.broadcast(msg, "terminator.ban.see");
+
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(msg, "terminator.ban.see");
+				});
 			} catch (Exception ex) {
-				Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving ban for player " + ChatColor.GOLD
-						+ playerName + ChatColor.RED + ", ask ODD to fix that", "terminator.ban.see");
-				Bukkit.getLogger().log(Level.SEVERE,
-						__.PREFIX + ChatColor.RED + "SQLException while saving ban for player " + ChatColor.GOLD
-								+ playerName + ChatColor.RED + ", ask ODD to fix that",
-						ex);
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving ban for player "
+							+ ChatColor.GOLD + playerName + ChatColor.RED + ", ask ODD to fix that",
+							"terminator.ban.see");
+					Bukkit.getLogger()
+							.log(Level.SEVERE,
+									__.PREFIX + ChatColor.RED + "SQLException while saving ban for player "
+											+ ChatColor.GOLD + playerName + ChatColor.RED + ", ask ODD to fix that",
+									ex);
+				});
 			}
 		});
 	}
@@ -325,27 +330,34 @@ public class TerminatorManager implements Listener {
 		ban.setDeleted(true);
 		ban.setDeletePlayer(deletePlayer);
 		ban.setDeleteReason(deleteReason);
-		try {
-			if (ban.getSanctionId() == 0) {
-				Bukkit.broadcast(
-						__.PREFIX + ChatColor.AQUA + playerName + ChatColor.GREEN
-								+ " is no longer banned but cannot update database because id is not set :(",
-						"terminator.ban.see");
-				return;
-			}
-			Terminator.get().getDatabaseManager().getBanManager().stopBan(
-					new BanModel(ban.getSanctionId(), null, null, null, null, null, true, deleteReason, deletePlayer),
-					Terminator.get().getDatabaseModel());
-			Bukkit.broadcast(__.PREFIX + ChatColor.AQUA + playerName + ChatColor.GREEN + " is no longer banned",
+		if (ban.getSanctionId() == 0) {
+			Bukkit.broadcast(
+					__.PREFIX + ChatColor.AQUA + playerName + ChatColor.GREEN
+							+ " is no longer banned but cannot update database because id is not set :(",
 					"terminator.ban.see");
-		} catch (Exception ex) {
-			Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unban for player " + ChatColor.GOLD
-					+ playerName + ChatColor.RED + ", ask ODD to fix that", "terminator.ban.see");
-			Bukkit.getLogger().log(Level.SEVERE,
-					__.PREFIX + ChatColor.RED + "SQLException while saving unban for player " + ChatColor.GOLD
-							+ playerName + ChatColor.RED + ", ask ODD to fix that",
-					ex);
+			return;
 		}
+		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
+			try {
+				Terminator.get().getDatabaseManager().getBanManager().stopBan(new BanModel(ban.getSanctionId(), null,
+						null, null, null, null, true, deleteReason, deletePlayer), Terminator.get().getDatabaseModel());
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(__.PREFIX + ChatColor.AQUA + playerName + ChatColor.GREEN + " is no longer banned",
+							"terminator.ban.see");
+				});
+			} catch (Exception ex) {
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unban for player "
+							+ ChatColor.GOLD + playerName + ChatColor.RED + ", ask ODD to fix that",
+							"terminator.ban.see");
+					Bukkit.getLogger()
+							.log(Level.SEVERE,
+									__.PREFIX + ChatColor.RED + "SQLException while saving unban for player "
+											+ ChatColor.GOLD + playerName + ChatColor.RED + ", ask ODD to fix that",
+									ex);
+				});
+			}
+		});
 	}
 
 	public boolean isBanned(UUID uuid) {
@@ -357,15 +369,12 @@ public class TerminatorManager implements Listener {
 		TerminatorIp tip = getIp(punishedIp);
 		banIp.add(ban);
 		tip.addBan(ban);
+		for (Player p2 : Bukkit.getOnlinePlayers())
+			if (punishedIp.equalsIgnoreCase(p2.getAddress().getAddress().getHostAddress())
+					&& !getPlayer(p2.getUniqueId()).isBypass())
+				p2.kickPlayer(getBanIpMessage(ban));
 		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
 			try {
-				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
-					for (Player p2 : Bukkit.getOnlinePlayers()) {
-						if (punishedIp.equalsIgnoreCase(p2.getAddress().getAddress().getHostAddress())
-								&& !getPlayer(p2.getUniqueId()).isBypass())
-							p2.kickPlayer(getBanIpMessage(ban));
-					}
-				});
 				long id = Terminator.get().getDatabaseManager().getBanIpManager()
 						.addIpBan(
 								new BanIpModel(0, punishedIp, punisherUuid, reason, null,
@@ -376,12 +385,18 @@ public class TerminatorManager implements Listener {
 						+ ChatColor.GOLD + (punisherUuid == null ? "CONSOLE" : UUIDs.get(punisherUuid))
 						+ ChatColor.GREEN + " until " + ChatColor.GOLD + (expiration == null ? "never"
 								: new SimpleDateFormat("yyyy-MM-dd hh:MM:ss").format(expiration));
-				Bukkit.broadcast(msg, "terminator.banip.see");
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(msg, "terminator.banip.see");
+				});
 			} catch (Exception ex) {
-				Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving ban for ip " + ChatColor.GOLD
-						+ punishedIp + ChatColor.RED + ", ask ODD to fix that", "terminator.banip.see");
-				Bukkit.getLogger().log(Level.SEVERE, __.PREFIX + ChatColor.RED + "SQLException while saving ban for ip "
-						+ ChatColor.GOLD + punishedIp + ChatColor.RED + ", ask ODD to fix that", ex);
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving ban for ip " + ChatColor.GOLD
+							+ punishedIp + ChatColor.RED + ", ask ODD to fix that", "terminator.banip.see");
+					Bukkit.getLogger().log(Level.SEVERE,
+							__.PREFIX + ChatColor.RED + "SQLException while saving ban for ip " + ChatColor.GOLD
+									+ punishedIp + ChatColor.RED + ", ask ODD to fix that",
+							ex);
+				});
 			}
 		});
 	}
@@ -403,13 +418,20 @@ public class TerminatorManager implements Listener {
 			Terminator.get().getDatabaseManager().getBanIpManager().stopIpBan(
 					new BanIpModel(ban.getSanctionId(), null, null, null, null, null, true, deleteReason, deletePlayer),
 					Terminator.get().getDatabaseModel());
-			Bukkit.broadcast(__.PREFIX + ChatColor.AQUA + ip + ChatColor.GREEN + " is no longer banned",
-					"terminator.banip.see");
+
+			Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
+				Bukkit.broadcast(__.PREFIX + ChatColor.AQUA + ip + ChatColor.GREEN + " is no longer banned",
+						"terminator.banip.see");
+			});
 		} catch (Exception ex) {
-			Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unban for ip " + ChatColor.GOLD + ip
-					+ ChatColor.RED + ", ask ODD to fix that", "terminator.banip.see");
-			Bukkit.getLogger().log(Level.SEVERE, __.PREFIX + ChatColor.RED + "SQLException while saving unban for ip "
-					+ ChatColor.GOLD + ip + ChatColor.RED + ", ask ODD to fix that", ex);
+			Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
+				Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unban for ip " + ChatColor.GOLD
+						+ ip + ChatColor.RED + ", ask ODD to fix that", "terminator.banip.see");
+				Bukkit.getLogger().log(Level.SEVERE,
+						__.PREFIX + ChatColor.RED + "SQLException while saving unban for ip " + ChatColor.GOLD + ip
+								+ ChatColor.RED + ", ask ODD to fix that",
+						ex);
+			});
 		}
 	}
 
