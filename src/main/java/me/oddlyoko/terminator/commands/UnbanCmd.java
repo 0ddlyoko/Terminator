@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
+import me.oddlyoko.terminator.config.MessageManager;
 
 public class UnbanCmd extends Cmds implements CommandExecutor {
 
@@ -17,11 +18,15 @@ public class UnbanCmd extends Cmds implements CommandExecutor {
 		if ("unban".equalsIgnoreCase(command.getName())) {
 			// /unban <pseudo> <reason>
 			if (!sender.hasPermission("terminator.unban")) {
-				sender.sendMessage(error("You don't have permission to use this command"));
+				sender.sendMessage(error(MessageManager.get("commands.perm")));
+				return true;
+			}
+			if (Terminator.get().getTerminatorManager().isLoading()) {
+				sender.sendMessage(error(MessageManager.get("commands.notloaded")));
 				return true;
 			}
 			if (args.length < 2) {
-				sender.sendMessage(syntax("/unban <pseudo> <reason>"));
+				sender.sendMessage(syntax(MessageManager.get("commands.unban.syntax")));
 				return true;
 			}
 			String pseudo = args[0];
@@ -34,11 +39,11 @@ public class UnbanCmd extends Cmds implements CommandExecutor {
 
 			UUID uuid = UUIDs.get(pseudo);
 			if (uuid == null) {
-				sender.sendMessage(error("Player " + pseudo + " hasn't been found"));
+				sender.sendMessage(error(MessageManager.get("commands.playerNotFound").replace("{player}", pseudo)));
 				return true;
 			}
 			if (!Terminator.get().getTerminatorManager().isBanned(uuid)) {
-				sender.sendMessage(error("Player " + pseudo + " isn't banned"));
+				sender.sendMessage(error(MessageManager.get("commands.unban.notBanned").replace("{player}", pseudo)));
 				return true;
 			}
 			Terminator.get().getTerminatorManager().unban(uuid, reason.toString(),

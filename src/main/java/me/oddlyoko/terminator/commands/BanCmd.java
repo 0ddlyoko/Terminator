@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
+import me.oddlyoko.terminator.config.MessageManager;
 
 public class BanCmd extends Cmds implements CommandExecutor {
 
@@ -18,11 +19,15 @@ public class BanCmd extends Cmds implements CommandExecutor {
 		if ("ban".equalsIgnoreCase(command.getName())) {
 			// /ban <pseudo> <time> <reason>
 			if (!sender.hasPermission("terminator.ban")) {
-				sender.sendMessage(error("You don't have permission to use this command"));
+				sender.sendMessage(error(MessageManager.get("commands.perm")));
+				return true;
+			}
+			if (Terminator.get().getTerminatorManager().isLoading()) {
+				sender.sendMessage(error(MessageManager.get("commands.notloaded")));
 				return true;
 			}
 			if (args.length < 3) {
-				sender.sendMessage(syntax("/ban <pseudo> <time> <reason>"));
+				sender.sendMessage(syntax(MessageManager.get("commands.ban.syntax")));
 				return true;
 			}
 			String pseudo = args[0];
@@ -34,11 +39,11 @@ public class BanCmd extends Cmds implements CommandExecutor {
 				time = textToInt(strTime);
 			}
 			if (time == -1) {
-				sender.sendMessage(error("Cannot parse " + strTime + " to a correct time"));
+				sender.sendMessage(error(MessageManager.get("commands.ban.parse").replace("{time}", strTime)));
 				return false;
 			}
 			if (time < 0) {
-				sender.sendMessage(error("Time must be greater or equals to 0"));
+				sender.sendMessage(error(MessageManager.get("commands.ban.outofrange")));
 				return false;
 			}
 			StringBuilder reason = new StringBuilder();
@@ -50,16 +55,16 @@ public class BanCmd extends Cmds implements CommandExecutor {
 			UUID playerUuid = UUIDs.get(pseudo);
 			if (playerUuid == null) {
 				// Player not found
-				sender.sendMessage(error("Player " + pseudo + " hasn't been found"));
+				sender.sendMessage(error(MessageManager.get("commands.playerNotFound").replace("{player}", pseudo)));
 				return true;
 			}
 			if (Terminator.get().getTerminatorManager().isBanned(playerUuid)) {
 				// Already banned
-				sender.sendMessage(error("Player " + pseudo + " is already banned"));
+				sender.sendMessage(error(MessageManager.get("commands.ban.alreadyBanned").replace("{player}", pseudo)));
 				return true;
 			}
 			if (Terminator.get().getTerminatorManager().isBypass(playerUuid)) {
-				sender.sendMessage(error("Cannot ban " + pseudo));
+				sender.sendMessage(error(MessageManager.get("commands.ban.bypass").replace("{player}", pseudo)));
 				return true;
 			}
 			UUID player2Uuid = (sender instanceof Player) ? ((Player) sender).getUniqueId() : null;

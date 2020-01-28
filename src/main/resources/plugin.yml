@@ -12,6 +12,10 @@ commands:
     description: Ban a player
   unban:
     description: Unban a player
+  banip:
+    description: Ban an ip
+  unbanip:
+    description: Unban an ip
   mute:
     description: Mute a player
   unmute:
@@ -39,10 +43,22 @@ permissions:
     description: Ban a player
   terminator.ban.see:
     default: op
-    description: Show a message when a player is banned
+    description: Show a message when a player is banned / unbanned
   terminator.unban:
     default: op
     description: Unban a player that is already banned
+  terminator.banip: 
+    default: op
+    description: Ban an ip
+  terminator.banip.see:
+    default: op
+    description: Show a message when an ip is banned / unbanned
+  terminator.banip.seeip:
+    default: op
+    description: Show the ip when an ip is banned
+  terminator.unbanip:
+    default: op
+    description: Unban an ip that is already banned
   terminator.kick:
     default: op
     description: Kick a player

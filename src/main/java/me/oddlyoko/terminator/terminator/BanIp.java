@@ -9,11 +9,11 @@ import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
-public class Mute {
+public class BanIp {
 	@Setter
 	private long sanctionId;
-	private UUID punishedUuid;
-	// If punisher is null then the mute didn't come from a player but from the
+	private String punishedIp;
+	// If punisher is null then the ban didn't come from a player but from the
 	// console
 	private UUID punisherUuid;
 	private String reason;
@@ -26,8 +26,8 @@ public class Mute {
 	@Setter
 	private UUID deletePlayer;
 
-	public Mute(UUID punishedUuid, UUID punisherUuid, String reason, Date expiration) {
-		this.punishedUuid = punishedUuid;
+	public BanIp(String punishedIp, UUID punisherUuid, String reason, Date expiration) {
+		this.punishedIp = punishedIp;
 		this.punisherUuid = punisherUuid;
 		this.reason = reason;
 		this.expiration = expiration;

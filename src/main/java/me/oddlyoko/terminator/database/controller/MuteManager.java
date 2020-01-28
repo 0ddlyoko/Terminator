@@ -12,6 +12,8 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 
+import com.mysql.jdbc.Statement;
+
 import me.oddlyoko.terminator.database.DatabaseModel;
 import me.oddlyoko.terminator.database.model.MuteModel;
 
@@ -36,24 +38,25 @@ public class MuteManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date, expiration, "
-					+ "is_deleted, delete_reason, HEX(delete_player) AS delete_player FROM " + TABLE
-					+ " WHERE sanction_id=?";
+			String sql = "SELECT sanction_id, punished_uuid, punisher_uuid, reason, creation_date, expiration, "
+					+ "is_deleted, delete_reason, delete_player FROM " + TABLE
+					+ " WHERE sanction_id=? ORDER BY sanction_id";
 			s = c.prepareStatement(sql);
 			s.setLong(1, sanctionId);
 
 			rs = s.executeQuery();
 			if (rs.next()) {
 				// Exist
-				UUID punishedUuid = UUID.nameUUIDFromBytes(rs.getBytes("punished_uuid"));
-				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
+				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
+				String strPunisherUuid = rs.getString("punisher_uuid");
+				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
-				Timestamp expiration = rs.getTimestamp("expiration_date");
+				Timestamp expiration = rs.getTimestamp("expiration");
 				boolean isDeleted = rs.getBoolean("is_deleted");
 				String deleteReason = rs.getString("delete_reason");
-				UUID deletePlayer = UUID.nameUUIDFromBytes(rs.getBytes("delete_player"));
+				String strDeletePlayer = rs.getString("delete_player");
+				UUID deletePlayer = strDeletePlayer == null ? null : UUID.fromString(strDeletePlayer);
 				return new MuteModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate, expiration,
 						isDeleted, deleteReason, deletePlayer);
 			} else
@@ -85,26 +88,27 @@ public class MuteManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date, expiration, "
-					+ "is_deleted, delete_reason, HEX(delete_player) AS delete_player FROM " + TABLE
-					+ " WHERE punished_uuid=UNHEX(?)";
+			String sql = "SELECT sanction_id, punished_uuid, punisher_uuid, reason, creation_date, expiration, "
+					+ "is_deleted, delete_reason, delete_player FROM " + TABLE
+					+ " WHERE punished_uuid=? ORDER BY sanction_id";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			List<MuteModel> mutes = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
-				int sanctionId = rs.getInt("sanction_id");
-				UUID punishedUuid = UUID.nameUUIDFromBytes(rs.getBytes("punished_uuid"));
-				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
+				long sanctionId = rs.getLong("sanction_id");
+				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
+				String strPunisherUuid = rs.getString("punisher_uuid");
+				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
-				Timestamp expiration = rs.getTimestamp("expiration_date");
+				Timestamp expiration = rs.getTimestamp("expiration");
 				boolean isDeleted = rs.getBoolean("is_deleted");
 				String deleteReason = rs.getString("delete_reason");
-				UUID deletePlayer = UUID.nameUUIDFromBytes(rs.getBytes("delete_player"));
+				String strDeletePlayer = rs.getString("delete_player");
+				UUID deletePlayer = strDeletePlayer == null ? null : UUID.fromString(strDeletePlayer);
 				mutes.add(new MuteModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate, expiration,
 						isDeleted, deleteReason, deletePlayer));
 			}
@@ -137,26 +141,27 @@ public class MuteManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date, expiration, "
-					+ "is_deleted, delete_reason, HEX(delete_player) AS delete_player FROM " + TABLE
-					+ " WHERE punisher_uuid=UNHEX(?)";
+			String sql = "SELECT sanction_id, punished_uuid, punisher_uuid, reason, creation_date, expiration, "
+					+ "is_deleted, delete_reason, delete_player FROM " + TABLE
+					+ " WHERE punisher_uuid=? ORDER BY sanction_id";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			List<MuteModel> mutes = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
-				int sanctionId = rs.getInt("sanction_id");
-				UUID punishedUuid = UUID.nameUUIDFromBytes(rs.getBytes("punished_uuid"));
-				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
+				long sanctionId = rs.getLong("sanction_id");
+				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
+				String strPunisherUuid = rs.getString("punisher_uuid");
+				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
-				Timestamp expiration = rs.getTimestamp("expiration_date");
+				Timestamp expiration = rs.getTimestamp("expiration");
 				boolean isDeleted = rs.getBoolean("is_deleted");
 				String deleteReason = rs.getString("delete_reason");
-				UUID deletePlayer = UUID.nameUUIDFromBytes(rs.getBytes("delete_player"));
+				String strDeletePlayer = rs.getString("delete_player");
+				UUID deletePlayer = strDeletePlayer == null ? null : UUID.fromString(strDeletePlayer);
 				mutes.add(new MuteModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate, expiration,
 						isDeleted, deleteReason, deletePlayer));
 			}
@@ -188,9 +193,9 @@ public class MuteManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punished_uuid=UNHEX(?)";
+			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punished_uuid=?";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			if (rs.next())
@@ -223,9 +228,9 @@ public class MuteManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punisher_uuid=UNHEX(?)";
+			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punisher_uuid=?";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			if (rs.next())
@@ -259,17 +264,17 @@ public class MuteManager {
 			c = model.getConnection();
 
 			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason, expiration)"
-					+ " VALUES (UNHEX(?), UNHEX(?), ?, ?)";
-			s = c.prepareStatement(sql);
-			s.setString(1, muteModel.getPunishedUuid().toString().replace("-", ""));
-			s.setString(2, muteModel.getPunisherUuid().toString().replace("-", ""));
+					+ " VALUES (?, ?, ?, ?)";
+			s = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			s.setString(1, muteModel.getPunishedUuid().toString());
+			s.setString(2, muteModel.getPunisherUuid() == null ? null : muteModel.getPunisherUuid().toString());
 			s.setString(3, muteModel.getReason());
 			s.setTimestamp(4, muteModel.getExpiration());
 
 			s.executeUpdate();
 			rs = s.getGeneratedKeys();
 			if (rs.next())
-				return rs.getLong("sanction_id");
+				return rs.getLong(1);
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
@@ -287,7 +292,7 @@ public class MuteManager {
 	 *                      The mute model
 	 * @param model
 	 *                      The connection
-	 * @return The id of the mute
+	 * @return The row number that has been affected
 	 * @throws SQLException
 	 *                          If error
 	 */
@@ -298,17 +303,52 @@ public class MuteManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "UPDATE " + TABLE + " SET is_deleted=TRUE, deleteReason=?, deletePlayer=?"
-					+ " WHERE sanctionId=?";
+			String sql = "UPDATE " + TABLE + " SET is_deleted=TRUE, delete_reason=?, delete_player=?"
+					+ " WHERE sanction_id=?";
 			s = c.prepareStatement(sql);
 			s.setString(1, muteModel.getDeleteReason());
-			s.setString(2, muteModel.getDeletePlayer().toString().replace("-", ""));
+			s.setString(2, muteModel.getDeletePlayer() == null ? null : muteModel.getDeletePlayer().toString());
 			s.setLong(3, muteModel.getSanctionId());
 
 			return s.executeUpdate();
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
 					"stopMute: SQLException while stopping mute " + muteModel.getSanctionId(), ex);
+			throw ex;
+		} finally {
+			close(c, s, rs);
+		}
+	}
+
+	/**
+	 * Returns all players' uuid that got kicked at least one time
+	 * 
+	 * @param model
+	 *                  The connection
+	 * @return All players' uuid that got banned at least one
+	 * @throws SQLException
+	 *                          If error
+	 */
+	public List<UUID> getPlayersUUIDMutedOnce(DatabaseModel model) throws SQLException {
+		Connection c = null;
+		PreparedStatement s = null;
+		ResultSet rs = null;
+		try {
+			c = model.getConnection();
+
+			String sql = "SELECT punished_uuid FROM " + TABLE + " GROUP BY punished_uuid";
+			s = c.prepareStatement(sql);
+
+			rs = s.executeQuery();
+			List<UUID> mutes = new ArrayList<>();
+			while (rs.next()) {
+				// Exist
+				UUID uuid = UUID.fromString(rs.getString("punished_uuid"));
+				mutes.add(uuid);
+			}
+			return mutes;
+		} catch (SQLException ex) {
+			Bukkit.getLogger().log(Level.SEVERE, "getPlayersUUIDMutedOnce: SQLException while retrieving mutes", ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);

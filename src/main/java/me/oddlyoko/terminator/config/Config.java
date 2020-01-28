@@ -90,27 +90,24 @@ public class Config {
 
 	public List<String> getStringList(String path) {
 		List<String> name = new ArrayList<>();
-		for (String nom : fconfig.getStringList(path)) {
+		for (String nom : fconfig.getStringList(path))
 			name.add(nom.replace("&", "§"));
-		}
 		return name;
 	}
 
 	public List<Integer> getIntegerList(String path) {
 		List<Integer> name = new ArrayList<>();
-		for (Integer nom : fconfig.getIntegerList(path)) {
+		for (Integer nom : fconfig.getIntegerList(path))
 			name.add(nom);
-		}
 		return name;
 	}
 
 	public List<String> getKeys(String path) {
 		List<String> list = new ArrayList<>();
-		if ("".equalsIgnoreCase(path)) {
-			for (String section : fconfig.getKeys(false)) {
+		if ("".equalsIgnoreCase(path))
+			for (String section : fconfig.getKeys(false))
 				list.add(section);
-			}
-		} else {
+		else {
 			ConfigurationSection cs = fconfig.getConfigurationSection(path);
 			if (cs == null)
 				return list;

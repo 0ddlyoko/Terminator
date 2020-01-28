@@ -1,5 +1,8 @@
 package me.oddlyoko.terminator.commands;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.bukkit.ChatColor;
 
 import me.oddlyoko.terminator.__;
@@ -27,6 +30,7 @@ public class Cmds {
 			} else {
 				switch (c) {
 				case 'y':
+				case 'a':
 					totalSecs += (current * 31536000);
 					current = 0;
 					break;
@@ -35,6 +39,7 @@ public class Cmds {
 					current = 0;
 					break;
 				case 'd':
+				case 'j':
 					totalSecs += (current * 86400);
 					current = 0;
 					break;
@@ -56,5 +61,18 @@ public class Cmds {
 			}
 		}
 		return totalSecs;
+	}
+
+	private static final String IPv4_REGEX = "^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+			+ "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." + "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+			+ "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+	private static final Pattern IPv4_PATTERN = Pattern.compile(IPv4_REGEX);
+
+	public static boolean isCorrectIp(String ip) {
+		if (ip == null)
+			return false;
+		Matcher matcher = IPv4_PATTERN.matcher(ip);
+
+		return matcher.matches();
 	}
 }

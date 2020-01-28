@@ -12,6 +12,8 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 
+import com.mysql.jdbc.Statement;
+
 import me.oddlyoko.terminator.database.DatabaseModel;
 import me.oddlyoko.terminator.database.model.KickModel;
 
@@ -36,17 +38,17 @@ public class KickManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date FROM " + TABLE
-					+ " WHERE sanction_id=?";
+			String sql = "SELECT sanction_id, punished_uuid, punisher_uuid, reason, creation_date FROM " + TABLE
+					+ " WHERE sanction_id=? ORDER BY sanction_id";
 			s = c.prepareStatement(sql);
 			s.setLong(1, sanctionId);
 
 			rs = s.executeQuery();
 			if (rs.next()) {
 				// Exist
-				UUID punishedUuid = UUID.nameUUIDFromBytes(rs.getBytes("punished_uuid"));
-				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
+				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
+				String strPunisherUuid = rs.getString("punisher_uuid");
+				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
 				return new KickModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate);
@@ -79,19 +81,19 @@ public class KickManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date FROM " + TABLE
-					+ " WHERE punished_uuid=UNHEX(?)";
+			String sql = "SELECT sanction_id, punished_uuid, punisher_uuid, reason, creation_date FROM " + TABLE
+					+ " WHERE punished_uuid=? ORDER BY sanction_id";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			List<KickModel> kicks = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
-				int sanctionId = rs.getInt("sanction_id");
-				UUID punishedUuid = UUID.nameUUIDFromBytes(rs.getBytes("punished_uuid"));
-				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
+				long sanctionId = rs.getLong("sanction_id");
+				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
+				String strPunisherUuid = rs.getString("punisher_uuid");
+				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
 				kicks.add(new KickModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate));
@@ -125,19 +127,19 @@ public class KickManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT sanction_id, HEX(punished_uuid) AS punished_uuid, "
-					+ "HEX(punisher_uuid) AS punisher_uuid, reason, creation_date FROM " + TABLE
-					+ " WHERE punisher_uuid=UNHEX(?)";
+			String sql = "SELECT sanction_id, punished_uuid, punisher_uuid, reason, creation_date FROM " + TABLE
+					+ " WHERE punisher_uuid=?";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			List<KickModel> kicks = new ArrayList<>();
 			while (rs.next()) {
 				// Exist
-				int sanctionId = rs.getInt("sanction_id");
-				UUID punishedUuid = UUID.nameUUIDFromBytes(rs.getBytes("punished_uuid"));
-				UUID punisherUuid = UUID.nameUUIDFromBytes(rs.getBytes("punisher_uuid"));
+				long sanctionId = rs.getLong("sanction_id");
+				UUID punishedUuid = UUID.fromString(rs.getString("punished_uuid"));
+				String strPunisherUuid = rs.getString("punisher_uuid");
+				UUID punisherUuid = strPunisherUuid == null ? null : UUID.fromString(strPunisherUuid);
 				String reason = rs.getString("reason");
 				Timestamp creationDate = rs.getTimestamp("creation_date");
 				kicks.add(new KickModel(sanctionId, punishedUuid, punisherUuid, reason, creationDate));
@@ -170,9 +172,9 @@ public class KickManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punished_uuid=UNHEX(?)";
+			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punished_uuid=?";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			if (rs.next())
@@ -205,9 +207,9 @@ public class KickManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punisher_uuid=UNHEX(?)";
+			String sql = "SELECT COUNT(report_id) AS number FROM " + TABLE + " WHERE punisher_uuid=?";
 			s = c.prepareStatement(sql);
-			s.setString(1, uuid.toString().replace("-", ""));
+			s.setString(1, uuid.toString());
 
 			rs = s.executeQuery();
 			if (rs.next())
@@ -240,21 +242,55 @@ public class KickManager {
 		try {
 			c = model.getConnection();
 
-			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason)"
-					+ " VALUES (UNHEX(?), UNHEX(?), ?, ?)";
-			s = c.prepareStatement(sql);
-			s.setString(1, kickModel.getPunishedUuid().toString().replace("-", ""));
-			s.setString(2, kickModel.getPunisherUuid().toString().replace("-", ""));
+			String sql = "INSERT INTO " + TABLE + " (punished_uuid, punisher_uuid, reason)" + " VALUES (?, ?, ?)";
+			s = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			s.setString(1, kickModel.getPunishedUuid().toString());
+			s.setString(2, kickModel.getPunisherUuid() == null ? null : kickModel.getPunisherUuid().toString());
 			s.setString(3, kickModel.getReason());
 
 			s.executeUpdate();
 			rs = s.getGeneratedKeys();
 			if (rs.next())
-				return rs.getLong("sanction_id");
+				return rs.getLong(1);
 			return 0;
 		} catch (SQLException ex) {
 			Bukkit.getLogger().log(Level.SEVERE,
 					"addKick: SQLException while adding kick for player " + kickModel.getPunishedUuid(), ex);
+			throw ex;
+		} finally {
+			close(c, s, rs);
+		}
+	}
+
+	/**
+	 * Returns all players' uuid that got kicked at least one time
+	 * 
+	 * @param model
+	 *                  The connection
+	 * @return All players' uuid that got banned at least one
+	 * @throws SQLException
+	 *                          If error
+	 */
+	public List<UUID> getPlayersUUIDKickedOnce(DatabaseModel model) throws SQLException {
+		Connection c = null;
+		PreparedStatement s = null;
+		ResultSet rs = null;
+		try {
+			c = model.getConnection();
+
+			String sql = "SELECT punished_uuid FROM " + TABLE + " GROUP BY punished_uuid";
+			s = c.prepareStatement(sql);
+
+			rs = s.executeQuery();
+			List<UUID> kicks = new ArrayList<>();
+			while (rs.next()) {
+				// Exist
+				UUID uuid = UUID.fromString(rs.getString("punished_uuid"));
+				kicks.add(uuid);
+			}
+			return kicks;
+		} catch (SQLException ex) {
+			Bukkit.getLogger().log(Level.SEVERE, "getPlayersUUIDKickedOnce: SQLException while retrieving kicks", ex);
 			throw ex;
 		} finally {
 			close(c, s, rs);

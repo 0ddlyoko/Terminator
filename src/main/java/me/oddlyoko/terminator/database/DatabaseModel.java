@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import me.oddlyoko.terminator.Terminator;
+
 public class DatabaseModel {
 	private String host;
 	private int port;
@@ -26,11 +28,17 @@ public class DatabaseModel {
 	}
 
 	private void loadDriver() throws ClassNotFoundException {
-		Class.forName("com.mysql.jdbc.Driver");
+		if (Terminator.get().getConfigManager().isMysql())
+			Class.forName("com.mysql.jdbc.Driver");
+		else
+			Class.forName("org.mariadb.jdbc.Driver");
 	}
 
 	public Connection getConnection() throws SQLException {
-		return DriverManager.getConnection("jdbc://mysql://" + host + ":" + port + "/" + dbName + "?useSSL=false",
+		String use = "mysql";
+		if (!Terminator.get().getConfigManager().isMysql())
+			use = "mariadb";
+		return DriverManager.getConnection("jdbc:" + use + "://" + host + ":" + port + "/" + dbName + "?useSSL=false",
 				login, password);
 	}
 }

@@ -4,7 +4,8 @@
 package me.oddlyoko.terminator.config;
 
 import java.io.File;
-import java.util.List;
+
+import lombok.Getter;
 
 /**
  * Farm Copyright (C) 2019 0ddlyoko
@@ -26,14 +27,26 @@ import java.util.List;
  */
 public class ConfigManager {
 	private Config config;
-	private List<String> banMessage;
+	@Getter
+	private String host;
+	@Getter
+	private int port;
+	@Getter
+	private String dbName;
+	@Getter
+	private String user;
+	@Getter
+	private String password;
+	@Getter
+	private boolean mysql;
 
 	public ConfigManager() {
 		config = new Config(new File("plugins" + File.separator + "Terminator" + File.separator + "config.yml"));
-		banMessage = config.getStringList("ban_message");
-	}
-
-	public List<String> getBanMessage() {
-		return banMessage;
+		host = config.getString("host");
+		port = config.getInt("port");
+		dbName = config.getString("dbname");
+		user = config.getString("user");
+		password = config.getString("password");
+		mysql = config.getBoolean("mysql");
 	}
 }

@@ -57,11 +57,13 @@ public class MuteHistInventory implements InventoryProvider {
 
 	@Override
 	public void init(Inventory inv) {
+		Object oUser = inv.get(USER);
 		inv.put(UPDATE, true);
 		inv.fillRectangle(1, 5, 9, 1, BLACKBACKGROUND);
 		inv.fillRectangle(1, 1, 9, 1, GRAYBACKGROUND);
 		inv.set(0, ClickableItem.of(BACK, e -> {
-			Terminator.get().getTerminatorManager().openMainInventory(inv.getPlayer());
+			Terminator.get().getTerminatorManager().openMainInventory(inv.getPlayer(),
+					oUser == null ? null : (TerminatorPlayer) oUser);
 		}));
 		inv.set(8, VERSION);
 	}
@@ -111,11 +113,12 @@ public class MuteHistInventory implements InventoryProvider {
 		}
 		// Items
 		inv.fillRectangle(1, 2, 9, 3, ClickableItem.of(new ItemStack(Material.AIR)));
-		int from = (page - 1) * 27;
+		int from = Math.min(page * 27, mutes.size());
+		int to = 27 * (page - 1);
 		for (int i = 0; i < 27; i++) {
-			if (from + i >= mutes.size())
+			if (from - i <= to)
 				break;
-			inv.set(i + 9, ClickableItem.of(getMuteSkull(mutes.get(from + i))));
+			inv.set(i + 9, ClickableItem.of(getMuteSkull(mutes.get(from - i - 1))));
 		}
 	}
 
@@ -130,7 +133,7 @@ public class MuteHistInventory implements InventoryProvider {
 				+ (mute.getPunisherUuid() == null ? "CONSOLE" : UUIDs.get(mute.getPunisherUuid())));
 		lore.add(ChatColor.YELLOW + "At: " + ChatColor.GOLD + format.format(mute.getCreationDate()));
 		lore.add(ChatColor.YELLOW + "Until: " + ChatColor.GOLD
-				+ (mute == null ? "NEVER" : format.format(mute.getExpiration())));
+				+ (mute.getExpiration() == null ? "NEVER" : format.format(mute.getExpiration())));
 		lore.add(ChatColor.YELLOW + "Reason: " + ChatColor.GOLD + mute.getReason());
 		lore.add(ChatColor.BOLD + (mute.isExpired() ? ChatColor.GREEN + "[Expired]" : ChatColor.RED + "[On]"));
 		meta.setLore(lore);

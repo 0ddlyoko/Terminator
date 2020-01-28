@@ -7,14 +7,20 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 public class TerminatorPlayer {
+	@Getter
 	private UUID uuid;
+	@Getter
 	private List<Ban> bans;
 	private boolean isCurrentlyBanned;
+	@Getter
 	private List<Kick> kicks;
+	@Getter
 	private List<Mute> mutes;
 	private boolean isCurrentlyMuted;
+	@Getter
+	private TerminatorIp ip;
+	@Getter
 	@Setter
 	private boolean bypass;
 
@@ -91,5 +97,13 @@ public class TerminatorPlayer {
 	public boolean isMuted() {
 		checkMute();
 		return isCurrentlyMuted;
+	}
+
+	public void setIp(TerminatorIp ip) {
+		if (this.ip != null)
+			this.ip.removePlayer(this);
+		this.ip = ip;
+		if (ip != null)
+			ip.addPlayer(this);
 	}
 }

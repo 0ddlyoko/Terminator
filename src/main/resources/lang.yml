@@ -1,0 +1,123 @@
+date: "EEEE dd/MM/yyyy HH:mm:ss"
+loading:
+- "{prefix}"
+- "&7Veuillez patienter que le plugin de ban soit completement chargé"
+- "&7Si vous pensez que le temps est long, veuillez contacter un modérateur / un administrateur sur le discord:"
+- "&6https://discord.gg/je4bcJW"
+commands:
+  perm: "Vous n'avez pas la permission d'utiliser cette commande"
+  notloaded: "Veuillez attendre que le plugin soit chargé completement"
+  playerNotFound: "Le joueur {player} n'a pas été trouvé"
+  playerNotConnected: "Le joueur {player} n'est pas connecté"
+  notAPlayer: "Vous devez être un joueur pour pouvoir executer cette commande"
+  ban:
+    syntax: "/ban <pseudo> <time> <reason>"
+    parse: "{time} ne peut être converti en un temps correct"
+    outofrange: "Le temps doit être supérieur ou égal à 0"
+    alreadyBanned: "Le joueur {player} est déjà banni"
+    bypass: "On ne peut pas bannir le joueur {player}"
+  banip:
+    syntax: "/banip <pseudo|ip> <time> <reason>"
+    parse: "{time} ne peut être converti en un temps correct"
+    outofrange: "Le temps doit être supérieur ou égal à 0"
+    ipNotFound: "L'ip n'a pas été trouvé pour le joueur {player}"
+    alreadyBanned: "L'ip {ip} est déjà bannie"
+  bypass:
+    syntax: "/bypass <add|remove> <pseudo>"
+    add: "{player} est maintenant bypassable"
+    remove: "{player} n'est plus bypassable"
+  kick:
+    syntax: "/kick <pseudo> <reason>"
+    bypass: "On ne peut pas expulser le joueur {player}"
+  mute:
+    syntax: "/mute <pseudo> <time> <reason>"
+    parse: "{time} ne peut être converti en un temps correct"
+    outofrange: "Le temps doit être supérieur ou égal à 0"
+    alreadyMuted: "Le joueur {player} est déjà muet"
+    bypass: "On ne peut pas rendre muet le joueur {player}"
+  unban:
+    syntax: "/unban <pseudo> <reason>"
+    notBanned: "Le joueur {player} n'est pas banni"
+  unbanip:
+    syntax: "/unbanip <pseudo|ip> <reason>"
+    ipNotFound: "L'ip n'a pas été trouvé pour le joueur {player}"
+    notBanned: "L'ip {ip} n'est pas bannie"
+  unmute:
+    syntax: "/unmute <pseudo> <reason>"
+    notMuted: "Le joueur {player} n'est pas muet"
+console: "La Console"
+ban:
+  player:
+    until:
+    - "{prefix}"
+    - "&7Vous avez été banni du serveur"
+    - "&7Si vous pensez qu'il s'agit d'une erreur, veuillez contacter un modérateur / un administrateur sur le discord:"
+    - "&6https://discord.gg/je4bcJW"
+    - "&7Raison:"
+    - "&6{reason}"
+    - ""
+    - "&7Expiration:"
+    - "&6{expiration}"
+    perm:
+    - "{prefix}"
+    - "&7Vous avez été banni de manière permanente du serveur"
+    - "&7Si vous pensez qu'il s'agit d'une erreur, veuillez contacter un modérateur / un administrateur sur le discord:"
+    - "&6https://discord.gg/je4bcJW"
+    - "&7Raison:"
+    - "&6{reason}"
+  admin:
+    until: "&6{player} &aa été banni par &6{player2} &ajusqu'à &6{until}"
+    perm: "&6{player} &aa été banni de manière permanente par &6{player2}"
+unban:
+  noId: "&6{player} &aa été débanni par &6{player2} &amais on n'a pas pu modifier la base de données car l'id n'a pas été mis"
+  ok: "&6{player} &aa été débanni par &6{player2}"
+banip:
+  player:
+    until:
+    - "{prefix}"
+    - "&7Votre ip a été bannie du serveur"
+    - "&7Si vous pensez qu'il s'agit d'une erreur, veuillez contacter un modérateur / un administrateur sur le discord:"
+    - "&6https://discord.gg/je4bcJW"
+    - "&7Raison:"
+    - "&6{reason}"
+    - ""
+    - "&7Expiration:"
+    - "&6{expiration}"
+    perm:
+    - "{prefix}"
+    - "&7Votre ip a été bannie de manière permanente du serveur"
+    - "&7Si vous pensez qu'il s'agit d'une erreur, veuillez contacter un modérateur / un administrateur sur le discord:"
+    - "&6https://discord.gg/je4bcJW"
+    - "&7Raison:"
+    - "&6{reason}"
+  admin:
+    knownuser:
+      until: "&aL'adresse ip &6{ip} &acorrespondante au joueur &6{player} &aa été bannie par &6{player2} &ajusqu'à &6{until}"
+      perm: "&aL'adresse ip &6{ip} &acorrespondante au joueur &6{player} &aa été bannie de manière permanente par &6{player2}"
+    unknownuser:
+      until: "&aL'adresse ip &6{ip} &aa été bannie par &6{player2} &ajusqu'à &6{until}"
+      perm: "&aL'adresse ip &6{ip} &aa été bannie de manière permanente par &6{player2}"
+    hidden: "<Caché>"
+unbanip:
+  noId: "&aL'adresse ip &6{ip} &aa été débannie par &6{player2} &amais on n'a pas pu modifier la base de données car l'id n'a pas été mis"
+  ok: "&aL'adresse ip &6{ip} &aa été débannie par &6{player2}"
+kick:
+  player: 
+  - "{prefix}"
+  - "&7Vous venez de vous faire expulsé"
+  - "&7Raison:"
+  - "&6{reason}"
+  admin: "&6{player} &aa été expulsé par &6{player2}"
+mute:
+  talk:
+    until: "&cVous ne pouvez pas parler car vous êtes muet. Vous pourrez de nouveau parler le &6{date}"
+    perm: "&cVous ne pouvez pas parler car vous êtes muet de façon permanente"
+  player:
+    until: "&aVous avez été rendu muet jusqu'à &6{date} &apour la raison suivante: &6{reason}"
+    perm: "&aVous avez été rendu muet de façon permanente pour la raison suivante: &6{reason}"
+  admin: 
+    until: "&6{player} &aa été rendu muet par &6{player2} &ajusqu'à &6{date}"
+    perm: "&6{player} &aa été rendu muet de façon permanente par &6{player2}"
+unmute:
+  noId: "&6{player} &apeut de nouveau parler grâce à &6{player2} &amais on n'a pas pu modifier la base de données car l'id n'a pas été mis"
+  ok: "&6{player} &apeut de nouveau parler grâce à &6{player2}"

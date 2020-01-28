@@ -42,11 +42,10 @@ public class KickHistInventory implements InventoryProvider {
 	private final ItemStack BACK = ItemBuilder.of(Material.BARRIER)
 			.name(ChatColor.BOLD + ChatColor.RED.toString() + "Go back").build();
 	private final ClickableItem VERSION = ClickableItem
-			.of(ItemBuilder.of(Material.PAPER).name(__.PREFIX + "§7V1.0").build());
+			.of(ItemBuilder.of(Material.PAPER).name(__.PREFIX + ChatColor.GRAY + "V1.0").build());
 
 	@Override
 	public String title(Inventory inv) {
-
 		return ChatColor.GREEN + "Kick History" + (inv.get(USER) == null ? ""
 				: " > " + ChatColor.GOLD + UUIDs.get(((TerminatorPlayer) inv.get(USER)).getUuid()));
 	}
@@ -58,11 +57,13 @@ public class KickHistInventory implements InventoryProvider {
 
 	@Override
 	public void init(Inventory inv) {
+		Object oUser = inv.get(USER);
 		inv.put(UPDATE, true);
 		inv.fillRectangle(1, 5, 9, 1, BLACKBACKGROUND);
 		inv.fillRectangle(1, 1, 9, 1, GRAYBACKGROUND);
 		inv.set(0, ClickableItem.of(BACK, e -> {
-			Terminator.get().getTerminatorManager().openMainInventory(inv.getPlayer());
+			Terminator.get().getTerminatorManager().openMainInventory(inv.getPlayer(),
+					oUser == null ? null : (TerminatorPlayer) oUser);
 		}));
 		inv.set(8, VERSION);
 	}
@@ -112,11 +113,12 @@ public class KickHistInventory implements InventoryProvider {
 		}
 		// Items
 		inv.fillRectangle(1, 2, 9, 3, ClickableItem.of(new ItemStack(Material.AIR)));
-		int from = (page - 1) * 27;
+		int from = Math.min(page * 27, kicks.size());
+		int to = 27 * (page - 1);
 		for (int i = 0; i < 27; i++) {
-			if (from + i >= kicks.size())
+			if (from - i <= to)
 				break;
-			inv.set(i + 9, ClickableItem.of(getKickSkull(kicks.get(from + i))));
+			inv.set(i + 9, ClickableItem.of(getKickSkull(kicks.get(from - i - 1))));
 		}
 	}
 
