@@ -4,7 +4,6 @@
 package me.oddlyoko.terminator.config;
 
 import java.io.File;
-import java.util.List;
 
 import lombok.Getter;
 
@@ -40,10 +39,6 @@ public class ConfigManager {
 	private String password;
 	@Getter
 	private boolean mysql;
-	@Getter
-	private List<String> banMessage;
-	@Getter
-	private List<String> banIpMessage;
 
 	public ConfigManager() {
 		config = new Config(new File("plugins" + File.separator + "Terminator" + File.separator + "config.yml"));
@@ -53,7 +48,5 @@ public class ConfigManager {
 		user = config.getString("user");
 		password = config.getString("password");
 		mysql = config.getBoolean("mysql");
-		banMessage = config.getStringList("ban_message");
-		banIpMessage = config.getStringList("banip_message");
 	}
 }

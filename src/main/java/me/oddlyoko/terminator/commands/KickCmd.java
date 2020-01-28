@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.oddlyoko.terminator.Terminator;
+import me.oddlyoko.terminator.config.MessageManager;
 
 public class KickCmd extends Cmds implements CommandExecutor {
 
@@ -17,15 +18,15 @@ public class KickCmd extends Cmds implements CommandExecutor {
 		if ("kick".equalsIgnoreCase(command.getName())) {
 			// /unban <pseudo> <reason>
 			if (!sender.hasPermission("terminator.kick")) {
-				sender.sendMessage(error("You don't have permission to use this command"));
+				sender.sendMessage(error(MessageManager.get("commands.perm")));
 				return true;
 			}
 			if (Terminator.get().getTerminatorManager().isLoading()) {
-				sender.sendMessage(error("Please wait until plugin is fully loaded"));
+				sender.sendMessage(error(MessageManager.get("commands.notloaded")));
 				return true;
 			}
 			if (args.length < 2) {
-				sender.sendMessage(syntax("/kick <pseudo> <reason>"));
+				sender.sendMessage(syntax(MessageManager.get("commands.kick.syntax")));
 				return true;
 			}
 			String pseudo = args[0];
@@ -36,11 +37,12 @@ public class KickCmd extends Cmds implements CommandExecutor {
 			reason.setLength(reason.length() - 1);
 			Player player = Bukkit.getPlayer(pseudo);
 			if (player == null || !player.isOnline()) {
-				sender.sendMessage(error("Player " + pseudo + " is not connected"));
+				sender.sendMessage(
+						error(MessageManager.get("commands.playerNotConnected").replace("{player}", pseudo)));
 				return true;
 			}
 			if (Terminator.get().getTerminatorManager().isBypass(player.getUniqueId())) {
-				sender.sendMessage(error("Cannot kick " + pseudo));
+				sender.sendMessage(error(MessageManager.get("commands.kick.bypass").replace("{player}", pseudo)));
 				return true;
 			}
 			UUID player2Uuid = (sender instanceof Player) ? ((Player) sender).getUniqueId() : null;

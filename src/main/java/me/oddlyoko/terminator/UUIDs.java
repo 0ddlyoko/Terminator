@@ -4,12 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 
@@ -19,15 +20,20 @@ import lombok.Setter;
 
 public class UUIDs {
 	private static File f;
-
-	// Contient la liste des pseudos des personnes qui se sont connectés au moins
+	// Contient la liste triée des UUID des personnes qui se sont connectés au moins
 	// une fois sur le serveur
-	private static HashMap<UUID, Pear> uuids;
+	private static ArrayList<UUID> uuid;
+
 	// Contient la liste des UUID des personnes qui se sont connectés au moins une
 	// fois sur le serveur
-	private static HashMap<String, Pear> names;
+	private static HashMap<UUID, Peer> uuids;
+	// Contient la liste des pseudos des personnes qui se sont connectés au moins
+	// une fois sur le serveur
+	private static HashMap<String, Peer> names;
 
+	private static Pattern space = Pattern.compile(" ");
 	static {
+		uuid = new ArrayList<>();
 		uuids = new HashMap<>();
 		names = new HashMap<>();
 		// Création du fichier
@@ -45,8 +51,8 @@ public class UUIDs {
 				String line;
 				while (sc.hasNextLine()) {
 					line = sc.nextLine();
-					String[] strs = line.split(" ");
-					if (strs.length == 2) {
+					String[] strs = space.split(line);
+					if (strs.length == 2 || strs.length == 3) {
 						try {
 							String strUuid = strs[0];
 							String name = strs[1];
@@ -73,11 +79,11 @@ public class UUIDs {
 			synchronized (uuids) {
 				FileWriter fw = new FileWriter(f);
 
-				Iterator<Entry<UUID, Pear>> it = uuids.entrySet().iterator();
-				Entry<UUID, Pear> e;
+				Iterator<UUID> it = uuid.iterator();
+				UUID e;
 				while (it.hasNext()) {
 					e = it.next();
-					fw.append(e.getKey().toString()).append(" ").append(e.getValue().getPseudo()).append("\n");
+					fw.append(e.toString()).append(" ").append(uuids.get(e).pseudo).append("\n");
 				}
 				fw.close();
 			}
@@ -97,25 +103,21 @@ public class UUIDs {
 	 */
 	public static void register(UUID uuid, String name) {
 		synchronized (uuids) {
-			Pear p;
-			if ((p = uuids.get(uuid)) != null) {
-				// Same uuid
-				if (p.getPseudo().equals(name))
-					// Same pseudo, don't change
-					return;
-				// Change pseudo and update
-				p.setPseudo(name);
-				names.remove(name);
-				names.put(name, p);
-			} else {
-				if ((p = names.get(name)) != null)
-					// Same name
-					uuids.remove(p.getUuid());
-				// Create
-				p = Pear.of(name, uuid);
+			Peer p = uuids.get(uuid);
+			// If uuid does not exist, create a new entry
+			if (p == null) {
+				p = new Peer(name, uuid);
+				UUIDs.uuid.add(uuid);
 				uuids.put(uuid, p);
-				names.put(name, p);
 			}
+			// Different name
+			if (!p.getPseudo().equals(name)) {
+				// Remove old name from the list
+				names.remove(p.getPseudo());
+				// Add the new name
+				p.setPseudo(name);
+			}
+			names.put(name, p);
 		}
 	}
 
@@ -126,7 +128,7 @@ public class UUIDs {
 	 */
 	public static String get(UUID uuid) {
 		// Return if player is in the list
-		Pear p;
+		Peer p;
 		if ((p = uuids.get(uuid)) != null)
 			return p.getPseudo();
 		return null;
@@ -139,7 +141,7 @@ public class UUIDs {
 	 */
 	public static UUID get(String pseudo) {
 		// Return if player is in the list
-		Pear p;
+		Peer p;
 		if ((p = names.get(pseudo)) != null)
 			return p.getUuid();
 		return null;
@@ -153,13 +155,9 @@ public class UUIDs {
 
 	@Getter
 	@AllArgsConstructor
-	private static class Pear {
+	private static class Peer {
 		@Setter
 		private String pseudo;
 		private UUID uuid;
-
-		public static Pear of(String pseudo, UUID uuid) {
-			return new Pear(pseudo, uuid);
-		}
 	}
 }

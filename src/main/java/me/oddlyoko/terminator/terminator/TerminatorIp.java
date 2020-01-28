@@ -5,15 +5,19 @@ import java.util.List;
 
 import lombok.Getter;
 
-@Getter
 public class TerminatorIp {
+	@Getter
 	private String ip;
+	@Getter
 	private List<BanIp> bans;
 	private boolean isCurrentlyBanned;
+	@Getter
+	private List<TerminatorPlayer> players;
 
 	public TerminatorIp(String ip) {
 		this.ip = ip;
 		this.bans = new ArrayList<>();
+		this.players = new ArrayList<>();
 	}
 
 	public BanIp getBan() {
@@ -44,5 +48,13 @@ public class TerminatorIp {
 	public boolean isBanned() {
 		checkBan();
 		return isCurrentlyBanned;
+	}
+
+	public void addPlayer(TerminatorPlayer p) {
+		players.add(p);
+	}
+
+	public void removePlayer(TerminatorPlayer p) {
+		players.remove(p);
 	}
 }

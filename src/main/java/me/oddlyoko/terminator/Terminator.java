@@ -1,6 +1,8 @@
 package me.oddlyoko.terminator;
 
+import java.util.logging.Filter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,6 +23,8 @@ import me.oddlyoko.terminator.commands.UnMuteCmd;
 import me.oddlyoko.terminator.commands.UnbanCmd;
 import me.oddlyoko.terminator.commands.UnbanIpCmd;
 import me.oddlyoko.terminator.config.ConfigManager;
+import me.oddlyoko.terminator.config.MessageManager;
+import me.oddlyoko.terminator.config.PlayerConfigManager;
 import me.oddlyoko.terminator.database.DatabaseManager;
 import me.oddlyoko.terminator.database.DatabaseModel;
 import me.oddlyoko.terminator.inventories.InventoryManager;
@@ -32,6 +36,8 @@ public class Terminator extends JavaPlugin implements Listener {
 	private DatabaseManager databaseManager;
 	@Getter
 	private ConfigManager configManager;
+	@Getter
+	private PlayerConfigManager playerConfigManager;
 	@Getter
 	private TerminatorManager terminatorManager;
 	@Getter
@@ -49,6 +55,16 @@ public class Terminator extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		Bukkit.getLogger().info("Loading Terminator ...");
+		// Add filter
+		Bukkit.getLogger().setFilter(new Filter() {
+
+			@Override
+			public boolean isLoggable(LogRecord record) {
+				// Remove BIG message
+				// I know this is not an elegant way to remove it but it works ...
+				return record.getMessage().indexOf("protocolsupport.protocol.utils.authlib.GameProfile") == -1;
+			}
+		});
 		saveDefaultConfig();
 		configManager = new ConfigManager();
 		try {
@@ -58,6 +74,7 @@ public class Terminator extends JavaPlugin implements Listener {
 			Bukkit.getLogger().log(Level.SEVERE, "ClassNotFound for database connection: ", ex);
 			Bukkit.shutdown();
 		}
+		MessageManager.load();
 		inventorymanager = new InventoryManager();
 		inventorymanager.init();
 		UUIDs.load();
@@ -68,6 +85,7 @@ public class Terminator extends JavaPlugin implements Listener {
 			UUIDs.save();
 		}, 1, 3600);
 		databaseManager = new DatabaseManager();
+		playerConfigManager = new PlayerConfigManager();
 		Bukkit.getPluginManager().registerEvents(terminatorManager = new TerminatorManager(), this);
 		Bukkit.getPluginManager().registerEvents(this, this);
 		getCommand("ban").setExecutor(new BanCmd());
@@ -84,6 +102,7 @@ public class Terminator extends JavaPlugin implements Listener {
 
 	@Override
 	public void onDisable() {
+		Bukkit.getLogger().setFilter(null);
 		if (uuidTask != null)
 			uuidTask.cancel();
 		UUIDs.save();
@@ -93,6 +112,7 @@ public class Terminator extends JavaPlugin implements Listener {
 	public void onPlayerLogin(PlayerLoginEvent e) {
 		Player p = e.getPlayer();
 		UUIDs.register(p.getUniqueId(), p.getName());
+		playerConfigManager.savePlayer(p.getUniqueId(), p.getName(), e.getAddress().getHostAddress());
 	}
 
 	public static Terminator get() {

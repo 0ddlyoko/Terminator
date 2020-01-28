@@ -133,7 +133,7 @@ public class BanHistInventory implements InventoryProvider {
 				+ (ban.getPunisherUuid() == null ? "CONSOLE" : UUIDs.get(ban.getPunisherUuid())));
 		lore.add(ChatColor.YELLOW + "At: " + ChatColor.GOLD + format.format(ban.getCreationDate()));
 		lore.add(ChatColor.YELLOW + "Until: " + ChatColor.GOLD
-				+ (ban == null ? "NEVER" : format.format(ban.getExpiration())));
+				+ (ban.getExpiration() == null ? "NEVER" : format.format(ban.getExpiration())));
 		lore.add(ChatColor.YELLOW + "Reason: " + ChatColor.GOLD + ban.getReason());
 		lore.add(ChatColor.BOLD + (ban.isExpired() ? ChatColor.GREEN + "[Expired]" : ChatColor.RED + "[On]"));
 		meta.setLore(lore);

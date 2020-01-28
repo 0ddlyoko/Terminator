@@ -43,7 +43,7 @@ permissions:
     description: Ban a player
   terminator.ban.see:
     default: op
-    description: Show a message when a player is banned
+    description: Show a message when a player is banned / unbanned
   terminator.unban:
     default: op
     description: Unban a player that is already banned
@@ -52,7 +52,10 @@ permissions:
     description: Ban an ip
   terminator.banip.see:
     default: op
-    description: Show a message when an ip is banned
+    description: Show a message when an ip is banned / unbanned
+  terminator.banip.seeip:
+    default: op
+    description: Show the ip when an ip is banned
   terminator.unbanip:
     default: op
     description: Unban an ip that is already banned

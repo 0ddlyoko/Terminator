@@ -133,7 +133,7 @@ public class MuteHistInventory implements InventoryProvider {
 				+ (mute.getPunisherUuid() == null ? "CONSOLE" : UUIDs.get(mute.getPunisherUuid())));
 		lore.add(ChatColor.YELLOW + "At: " + ChatColor.GOLD + format.format(mute.getCreationDate()));
 		lore.add(ChatColor.YELLOW + "Until: " + ChatColor.GOLD
-				+ (mute == null ? "NEVER" : format.format(mute.getExpiration())));
+				+ (mute.getExpiration() == null ? "NEVER" : format.format(mute.getExpiration())));
 		lore.add(ChatColor.YELLOW + "Reason: " + ChatColor.GOLD + mute.getReason());
 		lore.add(ChatColor.BOLD + (mute.isExpired() ? ChatColor.GREEN + "[Expired]" : ChatColor.RED + "[On]"));
 		meta.setLore(lore);

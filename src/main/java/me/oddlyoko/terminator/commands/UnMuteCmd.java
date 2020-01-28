@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
+import me.oddlyoko.terminator.config.MessageManager;
 
 public class UnMuteCmd extends Cmds implements CommandExecutor {
 
@@ -17,15 +18,15 @@ public class UnMuteCmd extends Cmds implements CommandExecutor {
 		if ("unmute".equalsIgnoreCase(command.getName())) {
 			// /unban <pseudo> <reason>
 			if (!sender.hasPermission("terminator.unmute")) {
-				sender.sendMessage(error("You don't have permission to use this command"));
+				sender.sendMessage(error(MessageManager.get("commands.perm")));
 				return true;
 			}
 			if (Terminator.get().getTerminatorManager().isLoading()) {
-				sender.sendMessage(error("Please wait until plugin is fully loaded"));
+				sender.sendMessage(error(MessageManager.get("commands.notloaded")));
 				return true;
 			}
 			if (args.length < 2) {
-				sender.sendMessage(syntax("/unmute <pseudo> <reason>"));
+				sender.sendMessage(syntax(MessageManager.get("commands.unmute.syntax")));
 				return true;
 			}
 			String pseudo = args[0];
@@ -38,11 +39,11 @@ public class UnMuteCmd extends Cmds implements CommandExecutor {
 
 			UUID uuid = UUIDs.get(pseudo);
 			if (uuid == null) {
-				sender.sendMessage(error("Player " + pseudo + " hasn't been found"));
+				sender.sendMessage(error(MessageManager.get("commands.playerNotFound").replace("{player}", pseudo)));
 				return true;
 			}
 			if (!Terminator.get().getTerminatorManager().isMuted(uuid)) {
-				sender.sendMessage(error("Player " + pseudo + " isn't muted"));
+				sender.sendMessage(error(MessageManager.get("commands.unmute.notMuted").replace("{player}", pseudo)));
 				return true;
 			}
 			Terminator.get().getTerminatorManager().unmute(uuid, reason.toString(),

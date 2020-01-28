@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import me.oddlyoko.terminator.Terminator;
 import me.oddlyoko.terminator.UUIDs;
+import me.oddlyoko.terminator.config.MessageManager;
 import me.oddlyoko.terminator.terminator.TerminatorPlayer;
 
 public class HistCmd extends Cmds implements CommandExecutor {
@@ -17,15 +18,15 @@ public class HistCmd extends Cmds implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if ("hist".equalsIgnoreCase(command.getName())) {
 			if (!sender.hasPermission("terminator.hist")) {
-				sender.sendMessage(error("You don't have permission to use this command"));
+				sender.sendMessage(error(MessageManager.get("commands.perm")));
 				return true;
 			}
 			if (Terminator.get().getTerminatorManager().isLoading()) {
-				sender.sendMessage(error("Please wait until plugin is fully loaded"));
+				sender.sendMessage(error(MessageManager.get("commands.notloaded")));
 				return true;
 			}
 			if (!(sender instanceof Player)) {
-				sender.sendMessage(error("You must be a player to execute this command"));
+				sender.sendMessage(error(MessageManager.get("commands.notAPlayer")));
 				return true;
 			}
 			Player p = (Player) sender;
@@ -33,7 +34,8 @@ public class HistCmd extends Cmds implements CommandExecutor {
 			if (args.length == 1) {
 				UUID uuid = UUIDs.get(args[0]);
 				if (uuid == null) {
-					sender.sendMessage(error("Player " + args[0] + " hasn't been found"));
+					sender.sendMessage(
+							error(MessageManager.get("commands.playerNotFound").replace("{player}", args[0])));
 					return true;
 				}
 				player = Terminator.get().getTerminatorManager().getPlayer(uuid);
