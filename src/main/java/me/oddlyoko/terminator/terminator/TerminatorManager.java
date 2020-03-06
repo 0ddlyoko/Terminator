@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 
 import lombok.Getter;
@@ -387,9 +388,8 @@ public class TerminatorManager implements Listener {
 		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
 			try {
 				long id = Terminator.get().getDatabaseManager().getBanIpManager()
-						.addIpBan(
-								new BanIpModel(0, punishedIp, punisherUuid, reason, null,
-										new Timestamp(expiration.getTime()), false, null, null),
+						.addIpBan(new BanIpModel(0, punishedIp, punisherUuid, reason, null,
+								expiration == null ? null : new Timestamp(expiration.getTime()), false, null, null),
 								Terminator.get().getDatabaseModel());
 				ban.setSanctionId(id);
 				String msgId = "banip.admin." + (pseudo == null ? "unknownuser" : "knownuser") + "."
@@ -562,7 +562,7 @@ public class TerminatorManager implements Listener {
 			try {
 				long id = Terminator.get().getDatabaseManager().getMuteManager()
 						.addMute(new MuteModel(0, punishedUuid, punisherUuid, reason, null,
-								new Timestamp(expiration == null ? null : expiration.getTime()), false, null, null),
+								expiration == null ? null : new Timestamp(expiration.getTime()), false, null, null),
 								Terminator.get().getDatabaseModel());
 				mute.setSanctionId(id);
 				if (expiration == null)
@@ -695,9 +695,28 @@ public class TerminatorManager implements Listener {
 		if (m != null && !p.isBypass()) {
 			e.setCancelled(true);
 			if (m.getExpiration() == null)
-				e.getPlayer().sendMessage(__.PREFIX + ChatColor.RED + "You can't talk because you're muted");
+				e.getPlayer().sendMessage(__.PREFIX + MessageManager.get("mute.talk.perm"));
 			else
 				e.getPlayer().sendMessage(__.PREFIX + MessageManager.get("mute.talk.until").replace("{date}",
+						new SimpleDateFormat(MessageManager.get("date"), Locale.FRANCE).format(m.getExpiration())));
+		}
+	}
+
+	@EventHandler
+	public void onPlayerCmd(PlayerCommandPreprocessEvent e) {
+		TerminatorPlayer p = getPlayer(e.getPlayer().getUniqueId());
+		Mute m = p.getMute();
+		if (m == null || p.isBypass())
+			return;
+		String msg = e.getMessage();
+		int spaceIdx = msg.indexOf(' ');
+		String cmd = (spaceIdx == -1) ? msg : msg.substring(0, spaceIdx);
+		if (Terminator.get().getConfigManager().getDisabledCmds().contains(cmd.substring(1))) {
+			e.setCancelled(true);
+			if (m.getExpiration() == null)
+				e.getPlayer().sendMessage(__.PREFIX + MessageManager.get("mute.cmd.perm"));
+			else
+				e.getPlayer().sendMessage(__.PREFIX + MessageManager.get("mute.cmd.until").replace("{date}",
 						new SimpleDateFormat(MessageManager.get("date"), Locale.FRANCE).format(m.getExpiration())));
 		}
 	}

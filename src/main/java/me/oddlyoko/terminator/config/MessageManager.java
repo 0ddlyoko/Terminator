@@ -69,8 +69,8 @@ public class MessageManager {
 
 		registerList("banip.player.until");
 		registerList("banip.player.perm");
-		register("banip.admin.knowuser.until");
-		register("banip.admin.knowuser.perm");
+		register("banip.admin.knownuser.until");
+		register("banip.admin.knownuser.perm");
 		register("banip.admin.unknownuser.until");
 		register("banip.admin.unknownuser.perm");
 		register("banip.admin.hidden");
@@ -87,6 +87,9 @@ public class MessageManager {
 		register("mute.player.perm");
 		register("mute.admin.until");
 		register("mute.admin.perm");
+		register("mute.cmd.until");
+		register("mute.cmd.perm");
+
 
 		register("unmute.noId");
 		register("unmute.ok");

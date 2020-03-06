@@ -4,6 +4,7 @@
 package me.oddlyoko.terminator.config;
 
 import java.io.File;
+import java.util.List;
 
 import lombok.Getter;
 
@@ -39,6 +40,8 @@ public class ConfigManager {
 	private String password;
 	@Getter
 	private boolean mysql;
+	@Getter
+	private List<String> disabledCmds;
 
 	public ConfigManager() {
 		config = new Config(new File("plugins" + File.separator + "Terminator" + File.separator + "config.yml"));
@@ -48,5 +51,6 @@ public class ConfigManager {
 		user = config.getString("user");
 		password = config.getString("password");
 		mysql = config.getBoolean("mysql");
+		disabledCmds = config.getStringList("disabledCmds");
 	}
 }

@@ -118,6 +118,9 @@ mute:
   admin: 
     until: "&6{player} &aa été rendu muet par &6{player2} &ajusqu'à &6{date}"
     perm: "&6{player} &aa été rendu muet de façon permanente par &6{player2}"
+  cmd:
+    until: "&cVous ne pouvez pas executer cette commande car vous êtes muet. Vous pourrez de nouveau parler le &6{date}"
+    perm: "&cVous ne pouvez pas executer cette commande car vous êtes muet de façon permanente"
 unmute:
   noId: "&6{player} &apeut de nouveau parler grâce à &6{player2} &amais on n'a pas pu modifier la base de données car l'id n'a pas été mis"
   ok: "&6{player} &apeut de nouveau parler grâce à &6{player2}"

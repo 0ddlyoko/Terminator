@@ -114,7 +114,7 @@ public class Terminator extends JavaPlugin implements Listener {
 		UUIDs.register(p.getUniqueId(), p.getName());
 		playerConfigManager.savePlayer(p.getUniqueId(), p.getName(), e.getAddress().getHostAddress());
 	}
-
+	
 	public static Terminator get() {
 		return TERMINATOR;
 	}
