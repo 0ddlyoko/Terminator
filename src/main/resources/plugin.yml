@@ -1,0 +1,64 @@
+name: Terminator
+main: me.oddlyoko.terminator.Terminator
+version: 1.0.0
+api-version: 1.13
+authors: [0ddlyoko, Grandoz]
+commands:
+  bypass:
+    description: Add / Remove players bypass
+  hist:
+    description: Get hist of mutes bans and kicks
+  ban:
+    description: Ban a player
+  unban:
+    description: Unban a player
+  banip:
+    description: Ban an ip
+  unbanip:
+    description: Unban an ip
+  mute:
+    description: Mute a player
+  unmute:
+    description: Unmute a player
+  kick:
+    description: Kick a player
+permissions:
+  terminator.bypass:
+    default: op
+    description: bypass players to prevent them for being banned, muted or kicked
+  terminator.hist:
+    default: op
+    description: can see server hist
+  terminator.mute:
+    default: op
+    description: Mute a player
+  terminator.mute.see:
+    default: op
+    description: Show a message when player is muted
+  terminator.unmute:
+    default: op
+    description: Unmute a player
+  terminator.ban: 
+    default: op
+    description: Ban a player
+  terminator.ban.see:
+    default: op
+    description: Show a message when a player is banned / unbanned
+  terminator.unban:
+    default: op
+    description: Unban a player that is already banned
+  terminator.banip: 
+    default: op
+    description: Ban an ip
+  terminator.banip.see:
+    default: op
+    description: Show a message when an ip is banned / unbanned
+  terminator.banip.seeip:
+    default: op
+    description: Show the ip when an ip is banned
+  terminator.unbanip:
+    default: op
+    description: Unban an ip that is already banned
+  terminator.kick:
+    default: op
+    description: Kick a player

@@ -1,0 +1,51 @@
+host: localhost
+port: 3306
+dbname: terminator
+user: root
+password:
+# If true, use MySQL. If false, use MariaDB
+mysql: true
+# Disable commands when a player is muted
+disabledCmds:
+- w
+- m
+- t
+- msg
+- emsg
+- tell
+- etell
+- whisper
+- ewhisper
+- pm
+- epm
+- r
+- er
+- reply
+- ereply
+- helpop
+- ehelpop
+- ac
+- eac
+- amsg
+- eamsg
+- essentials:w
+- essentials:m
+- essentials:t
+- essentials:msg
+- essentials:emsg
+- essentials:tell
+- essentials:etell
+- essentials:whisper
+- essentials:ewhisper
+- essentials:pm
+- essentials:epm
+- essentials:r
+- essentials:er
+- essentials:reply
+- essentials:ereply
+- essentials:helpop
+- essentials:ehelpop
+- essentials:ac
+- essentials:eac
+- essentials:amsg
+- essentials:eamsg
