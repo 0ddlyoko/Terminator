@@ -545,18 +545,21 @@ public class TerminatorManager implements Listener {
 		player.addMute(mute);
 		Player p = Bukkit.getPlayer(punishedUuid);
 		if (p != null) {
-			// Player is online, send him the message
-			if (expiration == null)
-				p.sendMessage(__.PREFIX + MessageManager.get("mute.player.perm")
-						.replace("{player2}",
-								punisherUuid == null ? MessageManager.get("console") : UUIDs.get(punisherUuid))
-						.replace("{reason}", reason));
-			else
-				p.sendMessage(__.PREFIX + MessageManager.get("mute.player.until")
-						.replace("{player2}",
-								punisherUuid == null ? MessageManager.get("console") : UUIDs.get(punisherUuid))
-						.replace("{reason}", reason).replace("{date}",
-								new SimpleDateFormat(MessageManager.get("date"), Locale.FRANCE).format(expiration)));
+			Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+				// Player is online, send him the message
+				if (expiration == null)
+					p.sendMessage(__.PREFIX + MessageManager.get("mute.player.perm")
+							.replace("{player2}",
+									punisherUuid == null ? MessageManager.get("console") : UUIDs.get(punisherUuid))
+							.replace("{reason}", reason));
+				else
+					p.sendMessage(__.PREFIX + MessageManager.get("mute.player.until")
+							.replace("{player2}",
+									punisherUuid == null ? MessageManager.get("console") : UUIDs.get(punisherUuid))
+							.replace("{reason}", reason).replace("{date}",
+									new SimpleDateFormat(MessageManager.get("date"), Locale.FRANCE)
+											.format(expiration)));
+			});
 		}
 		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
 			try {
@@ -565,21 +568,23 @@ public class TerminatorManager implements Listener {
 								expiration == null ? null : new Timestamp(expiration.getTime()), false, null, null),
 								Terminator.get().getDatabaseModel());
 				mute.setSanctionId(id);
-				if (expiration == null)
-					Bukkit.broadcast(
-							__.PREFIX + MessageManager.get("mute.admin.perm").replace("{player}", playerName).replace(
-									"{player2}",
-									punisherUuid == null ? MessageManager.get("console") : UUIDs.get(punisherUuid)),
-							"terminator.mute.see");
-				else
-					Bukkit.broadcast(
-							__.PREFIX + MessageManager.get("mute.admin.until").replace("{player}", playerName)
-									.replace("{player2}",
-											punisherUuid == null ? MessageManager.get("console")
-													: UUIDs.get(punisherUuid))
-									.replace("{date}", new SimpleDateFormat(MessageManager.get("date"), Locale.FRANCE)
-											.format(expiration)),
-							"terminator.mute.see");
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					if (expiration == null)
+						Bukkit.broadcast(__.PREFIX + MessageManager.get("mute.admin.perm")
+								.replace("{player}", playerName).replace("{player2}",
+										punisherUuid == null ? MessageManager.get("console") : UUIDs.get(punisherUuid)),
+								"terminator.mute.see");
+					else
+						Bukkit.broadcast(
+								__.PREFIX + MessageManager.get("mute.admin.until").replace("{player}", playerName)
+										.replace("{player2}",
+												punisherUuid == null ? MessageManager.get("console")
+														: UUIDs.get(punisherUuid))
+										.replace("{date}",
+												new SimpleDateFormat(MessageManager.get("date"), Locale.FRANCE)
+														.format(expiration)),
+								"terminator.mute.see");
+				});
 			} catch (Exception ex) {
 				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
 					Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving mute for player "
@@ -601,27 +606,34 @@ public class TerminatorManager implements Listener {
 		mute.setDeleted(true);
 		mute.setDeletePlayer(deletePlayer);
 		mute.setDeleteReason(deleteReason);
-		try {
-			if (mute.getSanctionId() == 0) {
-				Bukkit.broadcast(__.PREFIX + MessageManager.get("unmute.noId").replace("{player}", playerName).replace(
-						"{player2}", (deletePlayer == null ? MessageManager.get("console") : UUIDs.get(deletePlayer))),
-						"terminator.mute.see");
-				return;
-			}
-			Terminator.get().getDatabaseManager().getMuteManager().stopMute(new MuteModel(mute.getSanctionId(), null,
-					null, null, null, null, false, deleteReason, deletePlayer), Terminator.get().getDatabaseModel());
+		if (mute.getSanctionId() == 0) {
 			Bukkit.broadcast(
-					__.PREFIX + MessageManager.get("unmute.ok").replace("{player}", playerName).replace("{player2}",
+					__.PREFIX + MessageManager.get("unmute.noId").replace("{player}", playerName).replace("{player2}",
 							(deletePlayer == null ? MessageManager.get("console") : UUIDs.get(deletePlayer))),
 					"terminator.mute.see");
-		} catch (Exception ex) {
-			Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unmute for player " + ChatColor.GOLD
-					+ playerName + ChatColor.RED + ", ask ODD to fix that", "terminator.mute.see");
-			Bukkit.getLogger().log(Level.SEVERE,
-					__.PREFIX + ChatColor.RED + "SQLException while saving unmute for player " + ChatColor.GOLD
-							+ playerName + ChatColor.RED + ", ask ODD to fix that",
-					ex);
+			return;
 		}
+		Bukkit.getScheduler().runTaskAsynchronously(Terminator.get(), () -> {
+			try {
+				Terminator.get().getDatabaseManager().getMuteManager().stopMute(new MuteModel(mute.getSanctionId(),
+						null, null, null, null, null, false, deleteReason, deletePlayer),
+						Terminator.get().getDatabaseModel());
+				Bukkit.getScheduler().runTask(Terminator.get(), () -> {
+					Bukkit.broadcast(
+							__.PREFIX + MessageManager.get("unmute.ok").replace("{player}", playerName).replace(
+									"{player2}",
+									(deletePlayer == null ? MessageManager.get("console") : UUIDs.get(deletePlayer))),
+							"terminator.mute.see");
+				});
+			} catch (Exception ex) {
+				Bukkit.broadcast(__.PREFIX + ChatColor.RED + "Exception while saving unmute for player "
+						+ ChatColor.GOLD + playerName + ChatColor.RED + ", ask ODD to fix that", "terminator.mute.see");
+				Bukkit.getLogger().log(Level.SEVERE,
+						__.PREFIX + ChatColor.RED + "SQLException while saving unmute for player " + ChatColor.GOLD
+								+ playerName + ChatColor.RED + ", ask ODD to fix that",
+						ex);
+			}
+		});
 	}
 
 	public boolean isMuted(UUID uuid) {
